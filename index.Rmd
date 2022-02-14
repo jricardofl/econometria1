@@ -207,7 +207,7 @@ VASCONCELOS, M. A. S. e ALVES, D. (Editores) *Manual de Econometria*. São Paulo
 
 # [AULA 1](https://jricardofl.github.io/econometria1/econ1_aula1)
 
-# AULA 2
+# [AULA 2](https://jricardofl.github.io/econometria1/econ1_aula2)
 
 # AULA 3
 
