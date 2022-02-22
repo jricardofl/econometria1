@@ -289,7 +289,7 @@ $$
 
 Tanto o $R^2$ quanto o $\bar R^2$ servem para comparar diferentes modelos que possuam a mesma variável dependente.
 
-Na equação que estamos usando como exemplo:
+Na equação que estamos usando como exemplo, apenas 1,319% da variação de Salary é explicado pelo ROE:
 
 $$
 \widehat{salary}=963,19+18,50roe
