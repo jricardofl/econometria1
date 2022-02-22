@@ -1,0 +1,266 @@
+---
+title: "Aula 4 - Introdução à Econometria"
+author: "João Ricardo F. de Lima"
+date: "`r format(Sys.time(), '%d de %B de %Y.')`"
+output: 
+    html_document:
+        theme: flatly
+        number_sections: yes
+        keep_tex: yes
+        highlight: textmate
+#        includes: 
+#          in_header: "header.html"
+        toc: yes
+        toc_float:
+          collapsed: yes
+          smooth_scroll: yes 
+---
+
+<br>
+
+# Incorporando não-linearidades
+
+<br>
+
+## Modelo Log-Log
+
+<br>
+
+Como medir elasticidade? A elasticidade de uma função é dada por
+
+$$
+\varepsilon=\frac{\partial{Y}}{\partial{X}} \frac{X}{Y}
+$$ 
+Considere o seguinte modelo: 
+
+$$
+Y= \beta_0 X^{\beta_1} e^u 
+$$ 
+é possivel demonstrar que:
+
+$$
+\varepsilon=\beta_1
+$$
+	
+Como o modelo é não linear deve ser linearizado para estimar por MQO. Tomando o logaritmo da função estatística
+
+$$
+ln Y=ln \beta_0+ \beta_1 lnX +u
+$$ 
+
+com $ln\beta_0=\alpha$, tem-se:
+
+$$
+lnY= \alpha+ \beta_1 lnX + u 
+$$ 
+que é linear nos parâmetros $\alpha$ e $\beta_1$, podendo ser estimado por MQO; 
+$\beta_1$, então, é a elasticidade de Y em X, ou seja, a variação \% de Y correspondente a $\Delta \%$ em X. 
+
+<br>
+
+### Exemplo no R
+
+<br> 
+
+```{r econ1, message=FALSE, warning=FALSE}
+#Direcionado o R para o Diretorio a ser trabalhado
+setwd('C:/Users/Joao Ricardo Lima/Dropbox/tempecon/Facape/econometria1')
+
+#Pacotes a serem utilizados
+library(wooldridge)
+library(magrittr)# pipe operations
+data("wage1")
+
+# Modelo Lin-lin
+
+reg1<-lm(wage~exper, data=wage1)
+summary(reg1)
+
+# Modelo Log-log
+
+reg2<-lm(log(wage)~log(exper), data=wage1)
+summary(reg2)
+```
+
+<br>
+
+No Modelo **Lin-Lin**, a interpretação éo aumento de 1 ano na experiência faz aumentar o salário em 0,03072 centavos de dólar. No Modelo **Log-Log**, como é uma elasticidade, se a experiência aumentar 1\%, o salário aumenta 0,11686\%.
+
+É preciso tomar cuidado pois não existe log de zero. No caso de se querer estimar uma regressão do salario (wage) em função da escolaridade (educ), para verificar o efeito de um ano a mais de escolaridade sobre o salário, existe na base de dados pessoas analfabetas, ou seja, com zero ano de escolaridade.
+
+<br>
+
+```{r econ2, message=FALSE, warning=FALSE}
+# Estatística descritiva de EDUC
+summary(wage1$educ)
+
+# Possibilidade 1 - Retirar da base wage=0
+dados1 <- wage1[wage1$educ>0,]
+summary(dados1$educ)
+
+reg3<-lm(log(wage)~log(educ), data=dados1)
+summary(reg3)
+```
+
+<br>
+
+Como é uma elasticidade, se a educação aumentar 1\%, o salário aumenta 0,82521\%.
+
+Contudo, nem sempre retirar observações da base de dados pode ser a melhor opção, ainda mais se a quantidade de observações for pequena. Uma outra possibilidade é alterar o valor 0 para um valor maior que zero, mas bem pequeno (0,000001). 
+
+<br>
+
+```{r econ3, message=FALSE, warning=FALSE}
+
+# Possibilidade 2 - alterar o valor quando wage=0
+dados2 <- wage1
+dados2$educ[dados2$educ == 0] <- 0.000001
+summary(dados2$educ)
+
+reg4<-lm(log(wage)~log(educ), data=dados2)
+summary(reg4)
+```
+
+Como é uma elasticidade, se a educação aumentar 1\%, o salário aumenta 0,06927\%.
+
+<br>
+
+## Modelo Lin-Log
+
+<br> 
+
+No modelo lin-log se está interessado em saber a variação absoluta de Y ($\Delta Y$) dada a variação \% de X. Isto é obtido usando o modelo
+
+$$
+Y=\beta_0+ \beta_1 lnX+ u
+$$ 
+denominado de lin-log. Via cálculo diferencial:
+
+$$
+\frac {\partial Y}{\partial X}=\beta_1 \frac{1}{X}
+$$
+
+$$
+\partial Y= \beta_1 \frac {\partial X}{X}
+$$
+
+<br>
+
+A variação absoluta de Y é igual ao $\beta_1$ multiplicado pela variação relativa de X; 
+Se $\frac {\partial X}{X}$ for multiplicado por 100, tem-se a variação absoluta de Y para uma variação \% de X; 
+
+Quando se estima este tipo de modelo pelo método dos Mínimos Quadrados Ordinários (MQO), nao se pode esquecer de dividir o $\beta_1$ por 100! Se isto não for feito, a interpretação está incorreta!
+
+<br>
+
+### Exemplo no R
+
+<br>
+
+```{r econ4, message=FALSE, warning=FALSE}
+
+# Modelo Lin-Log
+
+reg5 <- lm(wage~log(educ), data=dados2)
+summary(reg5)
+```
+
+<br>
+
+Assim, no modelo **Lin-Log** é preciso dividir o valor do $\beta_1$ por 100, ou seja, 0.004428. Se a educação aumentar 1\%, o salário aumenta 0,004428 centavos de dólar.
+
+<br>
+
+## Modelo Log-Linear
+
+<br>
+
+Como calcular Taxa de Crescimento? Sempre estamos interessados em conhecer taxas de crescimento: a) PIB; b) Inflação; c) População; d) Emprego; e) Exportações, etc.
+
+Para isto, usando a fórmula
+
+$$ 
+Y_t=Y_0{(1+r)^t}
+$$
+
+$y_t$ é a variável a qual desejamos calcular a taxa de crescimento; $y_0$ é o valor inicial da variável; t é o tempo; r é a taxa de crescimento ao longo do tempo de Y; 
+
+Tomando o logaritmo da equação, tem-se 
+		
+$$
+ln Y_t=ln Y_0 +tln(1+r)
+$$
+denominando
+
+$\beta_0 = ln Y_0$   
+
+e 
+
+$\beta_1 = ln (1+r)$, reescreve-se a equação para;  
+
+$$
+ln Y_t=\beta_0 +\beta_1t
+$$
+
+na forma estocástica
+
+$$
+ln Y_t=\beta_0 +\beta_1t +u
+$$
+
+com t assumindo os valores 1,2,3, etc..
+
+este modelo é chamado de **Log-Linear**. Para se calcular a taxa de crescimento ao longo do tempo, deve-se aplicar a fórmula 
+
+$$
+[exp(\hat{\beta_1})-1]100
+$$
+
+É possível estimar também:  
+		
+$$
+Y_t=\beta_0 +\beta_1t+u
+$$
+
+este modelo é conhecido como **modelo de tendência linear** e a variável t é conhecida como variável de tendência. O sinal de $\beta_1$ indica se Y apresenta tendencia crescente ou decrescente; 
+	
+Os 2 modelos não podem ser comparados via $R^2$ pois as variáveis dependentes sao diferentes; 
+
+O que significa dizer com linearidade da relação entre as variáveis? Significa que os parâmetros estimados são lineares;
+
+As variáveis explicativas podem ser não-lineares. E, neste caso, vale ressaltar que se deve te cuidado com as interpretações dos parâmetros quando as variáveis forem não lineares.
+
+<br>
+
+### Exemplo no R
+
+<br>
+
+```{r econ5, message=FALSE, warning=FALSE}
+
+# Modelo Log-Lin
+
+reg6 <- lm(log(wage)~educ, data=dados2)
+summary(reg6)
+```
+
+<br>
+
+Com base no modelo **Log-Lin**, um ano a mais de escolaridade (educ) vai aumentar o salário (wage) em 8,27\%. A Taxa de crescimento de wage é de 8,6264\%:
+
+```{r econ6, message=FALSE, warning=FALSE}
+#Calculo da Taxa de Crescimento Geometrica
+coefs <- coefficients(reg6)
+(exp(coefs[2])-1)*100
+```
+
+## Quadro Resumo
+
+<center> Resumo das formas funcionais que envolvem logaritmos </center>
+
+| Modelo  | Regressando | Regressor | Interpretação $\beta_1$            |
+|:-------:|:-----------:|:---------:|:----------------------------------:|
+| Lin-Lin | Y           | X         | $\Delta Y=\beta_1\Delta X$         |
+| Lin-Log | Y           | log(X)    | $\Delta Y=(\beta_1/100)\%\Delta X$ |
+| Log-Lin | log(Y)      | X         | $\%\Delta Y=(100\beta_1)\Delta X$  |
+| Log-log | log(Y)      | log(X)    | $\%\Delta Y=\beta_1\%\Delta X$     |
