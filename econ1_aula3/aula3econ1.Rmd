@@ -180,7 +180,7 @@ dados$salaryhat <- round(salaryhat,2)
 dados$uhat <- round(uhat,2)
 
 #Tabela com os dados
-kable(head(dados, 10)) %>% 
+kable(head(dados, 10), align='cccc') %>% 
   kable_styling(full_width=TRUE, position = "center")
 ```
 <br>
