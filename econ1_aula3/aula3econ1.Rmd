@@ -1,0 +1,302 @@
+---
+title: "Aula 3 - Introdução à Econometria"
+author: "João Ricardo F. de Lima"
+date: "`r format(Sys.time(), '%d de %B de %Y.')`"
+output: 
+    html_document:
+        theme: flatly
+        number_sections: yes
+        keep_tex: yes
+        highlight: textmate
+#        includes: 
+#          in_header: "header.html"
+        toc: yes
+        toc_float:
+          collapsed: yes
+          smooth_scroll: yes 
+---
+
+<br>
+
+# Variância e Erros-padrão dos estimadores de MQO
+
+<br>
+
+Os $\beta$s estimados por MQO são variáveis aleatórias, dado que seus valores variam entre amostras. Portanto, é necessário mensurar sua variabilidade. Para isto, se usa a variância ($S^2$). 
+
+<br>		
+$$
+var(\hat{\beta_0})=S^2(\hat{\beta_0})=\frac{\hat{\sigma}^2\sum X_i^2}{n \sum x_i^2}
+$$
+<br>
+		
+com $\sum x_i^2=\sum (X-\bar X)^2$ 
+
+<br>
+
+$$
+var(\hat{\beta_1})=S^2(\hat{\beta_1})=\frac{\hat{\sigma}^2}{\sum x_i^2}
+$$
+<br>
+
+Para o Modelo de Regressão Linear, uma estimativa da variância do termo de erro $u_i$, é obtida por:
+
+<br>
+
+$$
+\hat{\sigma}^2=\frac{\sum{\hat{u_i}^2}}{n-k}=\frac{SQR}{n-k}
+$$
+<br>
+
+em que $n$=tamanho da amostra e k=número de $\beta$'s estimados.
+		
+$\hat{\sigma}=\sqrt{\hat{\sigma}^2}$ é denominado de erro padrão da regressão.
+		
+Se o  erro-padrão da variável dependente Y ($S_y$) for menor do que o erro padrão da regressão, a regressão não tem sentido, dado que os $X$'s nao tem impacto sobre $Y$. A melhor estimativa de Y, no caso de $S_y < \hat{\sigma}^2$, é a média de Y, ou seja, $\bar{Y}$.
+
+No caso do erro-padrão ($S$), se tem: 
+
+<br>
+
+$$
+S(\hat{\beta_0})=\sqrt{S^2(\hat{\beta_0})}=\sqrt{\frac{\hat{\sigma}^2\sum X_i^2}{n \sum x_i^2}}
+$$
+<br>		
+com $\sum x_i^2=\sum (X-\bar X)^2$ 
+
+$$
+S(\hat{\beta_1})=\sqrt{S^2(\hat{\beta_1})}=\sqrt{\frac{\hat{\sigma}^2}{\sum x_i^2}}
+$$
+<br>		
+	
+# Teste de Hipóteses
+
+<br>
+
+Suponha que queiramos testar se o coeficiente da regressão $\beta_k=0$. Para testar isso, deve ser usado o teste t dado por:
+
+<br>
+
+$$
+t=\frac{\hat{\beta_k}-\beta_k}{S(\hat{\beta_k)}} \sim t(n-k)gl
+$$ 
+
+<br>
+		
+Em que $S(\hat{\beta})$ é o erro padrão do $\beta$ que está sendo testado. Se $t(calc) > t(tab)$, pode-se rejeitar a hipótese nula de que $\beta_k=0$.
+
+Neste caso, se diz que o $\beta$ é significativo, ou seja, significativamente diferente de zero. Os valores de probabilidade escolhidos mais comumente são 10\%, 5\% e 1\%. 
+
+Estes valores são chamados como níveis de significância também conhecidos como erro Tipo I (probabilidade de rejeitar $H_0$, quando $H_0$ é verdadeiro). Os softwares econometricos já reportam automaticamente, não apenas os valores do teste t calculado, como os valores de probabilidade (p-value), que são os níveis exatos de significância dos valores de t. 
+
+Na prática, um p-value abaixo de 0,10 sugere que o coeficiente estimado é estatisticamente significativo.
+
+<br>
+
+# Valores estimados e resíduos
+
+<br>
+	
+Após obter as estimativas de $\beta_0$ (intercepto) e de $\beta_1$ (coeficiente de inclinação), em uma amostra específica, é possível obter o valor estimado $\hat{y}$ para cada observação "i".
+
+<br>
+
+$$
+\hat{y}_i=\hat{\beta}_0+\hat{\beta}_1x_i
+$$
+<br>
+
+Por definição, cada valor estimado está sobre a reta de regressão obtida por MQO. O resíduo associado a cada observação "$u_i$" é a diferença entre o valor observado $y_i$ e o estimado. 
+
+<br>
+		
+$$
+\hat{u}_i=y_i-\hat{y}_i
+$$
+<br>
+
+Se "$u_i$" for positivo, a reta subestima $y_i$. Se for negativo, superestima. Se $u_i=0$, o previsto é igual ao observado, mas isso raramente ocorre. 
+
+<br>
+
+## Demonstração no R
+
+<br>
+	
+``` {r pacotes, warning=FALSE, message=FALSE}
+#Verificando o diretorio que o R está direcionado
+getwd()
+
+#Direcionado o R para o Diretorio a ser trabalhado
+setwd('C:/Users/Joao Ricardo Lima/Dropbox/tempecon/Facape/econometria1')
+
+#Limpa o Ambiente Global
+rm(list=ls())
+
+#Pode usar dados de outros softwares
+library(wooldridge)
+library(ggplot2)
+library(dplyr)
+library(rstatix)
+library(htmltools)
+library(knitr)
+library(kableExtra)
+```
+
+<br>
+
+## Estimação do Modelo e Geração dos Valores Previstos e Resíduos
+
+``` {r econ1, warning=FALSE, message=FALSE}
+
+#Carregar dados no computador
+data('ceosal1')
+
+# Estimação do Modelo
+regressao1 <- lm(salary ~ roe, data=ceosal1)
+
+#Resultados da Regressao
+summary(regressao1)
+
+#Valores previstos pelo modelo
+salaryhat <- predict(regressao1)
+
+# Resíduos estimados
+uhat <- regressao1$residuals
+```
+
+<br>
+
+## Visualização dos Dados
+
+<br>
+
+``` {r econ2, warning=FALSE, message=FALSE}
+#Junção dos dados
+dados <- ceosal1%>% 
+  select(c(salary, roe))
+
+dados$salaryhat <- round(salaryhat,2)
+dados$uhat <- round(uhat,2)
+
+#Tabela com os dados
+kable(head(dados, 10)) %>% 
+  kable_styling(full_width=TRUE, position = "center")
+```
+<br>
+
+# Propriedades Algébricas das estatísticas de MQO
+
+<br>
+
+Há várias propriedades algébricas úteis das estimativas de MQO e das estatísticas a elas associadas:
+
+<br>
+
+$$
+\sum_{i=1}^{n}\hat{u}_i=0
+$$
+<br>
+
+Esta propriedade deriva da condição de primeira ordem feita para se encontrar os betas por MQO. Em outras palavras, os desvios da linha da regressão somam zero. 
+
+A Covariância amostral entre os regressores (variável independente) e os resíduos é zero:
+
+<br>
+
+$$
+\sum_{i=1}^{n}x_i\hat{u}_i=0
+$$
+<br>
+
+O ponto $(\bar{x}, \bar{y})$ sempre está sobre a reta de regressão.
+
+<br>
+
+$$
+\bar{y}=\hat{\beta}_0+\hat{\beta}_1\bar{x}
+$$ 
+<br>
+
+Se $\bar{x}$ for inserido no lugar de x, o valor ajustado é $\bar{y}$.
+
+<br>
+
+# Qualidade do Ajustamento da Regressão
+
+<br>
+
+## Coeficiente de determinação - $R^2$
+
+<br>	
+	
+Depois da estimação do modelo é fundamental que se observe o quão bem a variável independente explica a variável dependente, ou seja, a qualidade de ajustamento. O Coeficiente de Determinação $(R^2)$ é uma medida da qualidade do ajustamento do modelo. Ele fornece o percentual da variação total da variável dependente que é explicada pelo conjunto das variáveis independentes.
+
+Para calcular o $R^2$, é necessário definir:
+
+a) Soma de Quadrado Total $=\sum(Y-\bar Y)^2=\sum y^2$
+b) Soma de Quadrado Explicada $=\sum (\hat Y-\bar Y)^2$ 
+c) Soma de Quadrado do Resíduo $=\sum (Y- \hat Y)^2=\sum u^2$
+
+com $SQT=SQE+SQR$.
+
+<br>
+
+<center> Tabela 1: Quadro da Análise de Variância - ANOVA </center>
+
+| Fonte     | Soma de Quadrados | G.L.  | Quadrado Médio |
+|:---------:|:-----------------:|:-----:|:--------------:|
+| Regressão | SQE               | p     | SQE/P          |
+| Resíduo   | SQR               | n-p-1 | SQR/n-p-1      |
+| Total     | SQT               | n-1   |                |
+
+<br>
+
+Considerando que $SQT=SQE+SQR$, se dividir tudo por SQT, temos:
+
+<br>
+
+$$
+\frac {SQT}{SQT}=\frac {SQE}{SQT}+ \frac {SQR}{SQT}  
+$$ 
+$$
+1=R^2+ \frac {SQR}{SQT}  
+$$
+
+$$
+R^2=1- \frac {SQR}{SQT}
+$$
+sendo o coeficiente de determinação $R^2$ definido por $\frac{SQE}{SQT}$
+
+São duas alternativas para escrever o $R^2$. O coeficiente de determinação varia entre 0 e 1. Quanto mais próximo de 1, melhor a qualidade do ajuste do modelo.
+
+O $R^2$ possui algumas desvantagens, pois é uma função crescente do número de variáveis explicativas. Quanto maior o número de regressores, maior o $R^2$.
+
+Pode ser mostrado que o $R^2$ é igual ao quadrado do coeficiente de correlação amostral entre $y_i$ e $\hat{y}_i$.
+
+Para escolher, entre 2 modelos, qual possui o melhor ajuste, quando possuem quantidades diferentes de regressores, deve-se usar o $R^2$ ajustado, denotado por $\bar R^2$.
+
+O $\bar R^2$ impõe uma "penalidade" por se adicionar mais regressores.
+
+Se $k$, o número de regressores, é $> 1$, necessariamente $\bar R^2 < R^2$ 
+
+<br>
+
+$$
+\bar R^2=1-(1-R^2) \frac {n-1}{n-k}
+$$
+<br>
+
+Tanto o $R^2$ quanto o $\bar R^2$ servem para comparar diferentes modelos que possuam a mesma variável dependente.
+
+Na equação que estamos usando como exemplo:
+
+$$
+\widehat{salary}=963,19+18,50roe
+$$
+$$n=209, \quad R^2=0,01319$$
+
+```{r econ3, warning=FALSE, message=FALSE}
+#Resultados da Regressao
+summary(regressao1)
+```
