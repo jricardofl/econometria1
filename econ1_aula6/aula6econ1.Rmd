@@ -1,0 +1,511 @@
+---
+title: "Aula 6 - Introdução à Econometria"
+author: "João Ricardo F. de Lima"
+date: "`r format(Sys.time(), '%d de %B de %Y.')`"
+output: 
+    html_document:
+        theme: flatly
+        number_sections: yes
+        keep_tex: yes
+        highlight: textmate
+#        includes: 
+#          in_header: "header.html"
+        toc: yes
+        toc_float:
+          collapsed: yes
+          smooth_scroll: yes 
+    bookdown::html_document2: default
+---
+
+<br>
+
+# Revisão de Álgebra Matricial
+
+<br>
+
+Diferente da regressão simples, quando se tem apenas uma variável tentando explicar as mudanças em Y, no modelo de regressão múltipla é possível controlar explicitamente muitos outros fatores que, de maneira simultânea, afetam a variável dependente.
+
+Quanto mais variáveis explicativas no modelo, mais variação de Y poderá ser explicada.
+Assim, a análise de regressão múltipla pode ser usada para construir modelos melhores para prever a variável dependente. 
+
+<br>
+
+## Definição e tipologia de matrizes
+
+<br>
+
+Uma **matriz** é um arranjo retangular de números, denotado por letras maiúsculas em negrito.
+
+Já um **vetor** é um conjunto de números ordenados em uma linha ou coluna, denotado em letras minúsculas, também em negrito.
+
+Tipos comuns de matrizes em econometria:
+  
+I) Matrizes simétricas
+II) Matrizes diagonais
+III) Matriz escalar
+IV) Matriz identidade
+V) Matriz triangular (superior e inferior)
+
+<br>
+
+## Manipulação algébrica de matrizes
+
+<br>
+
+a) Igualdade: **A=B** $\iff a_{ik}=b_{ik}$;
+
+b) Transposição: **B=A'** $\iff b_{ik}=a_{ki}$
+		
+	Se **A** é simétrica, então **A=A'**
+
+c) Adição de matrizes: **C=A+B** $\rightarrow [a_{ik}+b_{ik}]$
+
+d) Matrizes são multiplicadas usando o **produto interno** o qual, para dois vetores **a** e **b** é dado por:
+
+$$
+{a'b}=a_1b_1+a_2b_2+\ldots+a_nb_n
+$$
+
+Assim, para uma matriz **A** de ordem $n\times K$ e uma matriz **B** de ordem $K \times M$, a matriz produto **C** é uma matriz $n \times M$:
+
+$$
+C=AB\rightarrow c_{ik}=\mathbf{a_i'b_k}
+$$
+
+<br>
+
+## Soma de Valores
+
+<br>
+
+Seja **i** um vetor coluna de $1's$. Então:
+
+$$
+		\sum\limits_{i=1}^{n}x_i=x_1+x_2+\ldots+x_n=\mathbf{i'x}
+$$
+Se todos os elementos em **x** são iguais a uma constante *a*, então $\mathbf{x}=a\mathbf{i}$ e
+
+$$
+\sum\limits_{i=1}^{n}x_i=\mathbf{i'}(a\mathbf{i})=a(\mathbf{i'i})=na
+$$
+
+Se $a=1/n$, então obtem-se a média aritmética de *x*:
+
+$$
+\bar{x}=\frac{1}{n}\sum\limits_{i=1}^{n}x_i=\frac{1}{n}\mathbf{i'x}
+$$
+	Logo, tem-se um resultado útil para derivações futuras no curso:
+	
+$$
+\sum\limits_{i=1}^{n}x_i=\mathbf{i'x}=n\bar{x}
+$$
+<br>
+
+## Soma de valores ao quadrado
+
+<br>
+
+A soma dos quadrados dos elementos de **x**, e de **x** por **y** é:
+
+$$
+\sum\limits_{i=1}^{n}x_i^2=\mathbf{x'x}\qquad \sum\limits_{i=1}^{n} x_iy_i=\mathbf{x'y}
+$$
+
+E, pela definição de multiplicação de matrizes:
+
+$$
+[\mathbf{X'X}]_{kl}=[\mathbf{x_k'x_l}]
+$$
+
+é o produto interno da $k-$ésima e $l-$ésima colunas de **X**.
+
+<br>
+
+## (In)dependência linear e posto de uma matriz
+
+<br>
+
+Um conjunto de vetores é **linearmente dependente** se qualquer um dos vetores no conjunto pode ser expresso como uma combinação linear dos demais.
+
+Um conjunto de vetores é **linearmente independente** se e somente se a única solução para $\alpha_1\mathbf{a_1}+\alpha_2\mathbf{a_2}+\ldots+\alpha_k\mathbf{a_k}=0$ é $\alpha_1=\alpha_2=\ldots=\alpha_k=0$.
+
+O **posto** (ou, do inglês, **rank**) de uma matriz equivale ao número de linhas (ou colunas) linearmente independentes.
+
+De modo equivalente, o posto de uma matriz **A** $p \times q$ é igual ao valor $r$ para o qual existe uma submatriz de **A** de tamanho $r \times r$ que possui determinante não nulo.
+
+<br>
+
+## Determinante de uma matriz
+
+<br>
+
+O **determinante** de uma matriz quadrada é uma função dos elementos da matriz. Def.: O **determinante** de uma matriz é não-nulo se e somente se a mesma possui posto cheio.
+
+Para uma matriz diagonal **D**:
+
+$$
+\mathbf{D}=\left[\begin{array}{ccccc}
+                 d_1 & 0 & 0 & \ldots & 0 \\ 
+                 0 & d_2 & 0 & \ldots & 0 \\ 
+                 &  &  & \ddots &  \\ 
+                 0 & 0 & 0 & \ldots & d_K
+                 \end{array} \right]
+$$
+O determinante é dado pelo produtório dos termos da diagonal principal:
+
+$$
+|\mathbf{D}|=\prod\limits_{k=1}^{K}d_k
+$$
+
+Para uma matriz $2 \times 2$, o cálculo do determinante é dado por:
+
+$$
+\begin{array}{|cc|}
+a & c \\ 
+b & d
+\end{array} =ad-bc
+$$
+
+Observe que o determinante é uma função de todos os elementos da matriz.
+
+Para matrizes com dimensões superiores a 2, utilizamos a expansão por cofatores:
+
+$$
+|\mathbf{A}|=\sum\limits_{k=1}^{K}a_{ik}(-1)^{i+k}|\mathbf{A}_{ik}|,\qquad k=1,\ldots,K.
+$$
+
+<br>
+
+## Matrizes Inversas
+
+<br>
+
+Uma matriz quadrada **A** $p \times p$ possui inversa se existe uma matriz **B** $p \times p$ tal que $\mathbf{AB=BA=I}$;
+
+Tal matriz **B** é denominada **inversa** de **A** e denotada $\mathbf{A^{-1}}$, com as seguintes propriedades:
+
+$$
+(\mathbf{AB})^{-1}=\mathbf{B^{-1}A^{-1}}; \quad \mathbf{A^{-1}A}=\mathbf{AA^{-1}=I}
+$$
+
+$$
+(\mathbf{A'})^{-1}=(\mathbf{A}^{-1})'; \quad (\mathbf{A}^{-1})^{-1}=\mathbf{A}
+$$
+
+**Matrizes singulares** são matrizes que não possuem inversa.
+
+<br>
+
+## Matrizes particionadas
+
+<br>
+
+Em algumas situações é útil agrupar os elementos de uma matriz em **submatrizes**. Seja:
+
+$$
+\mathbf{A}=\left[\begin{array}{cc|c}
+                 1 & 4 & 5 \\ 
+                 2 & 9 & 3 \\ 
+                 \hline
+                 8 & 9 & 6
+                 \end{array} \right]=\left[\begin{array}{cc}
+                                           \mathbf{A_{11}} &  \mathbf{A_{12}} \\ 
+                                           \mathbf{A_{21}} &  \mathbf{A_{22}}
+                                           \end{array} \right]
+$$
+Um caso especial é a matriz bloco-diagonal:
+
+
+$$
+\mathbf{A}=\left[\begin{array}{cc}
+                 \mathbf{A_{11}} &  0 \\ 
+                 0 &  \mathbf{A_{22}}
+                 \end{array} \right]
+$$
+<br>
+
+# Modelo de Regressão Múltipla
+
+<br>
+
+## Estimação dos betas por MQO
+
+<br>
+
+Será apresentado o Modelo Clássico de Regressão Linear envolvendo k variáveis, com $k>2$ $(Y, X_1, X_2, X_3, ..., X_k)$. 
+
+Apresentado na forma matricial em (1)
+
+$$
+\mathbf{Y}=\left(\begin{array}{c}
+y_1\\
+\vdots\\
+y_n
+\end{array}\right), \mathbf{ X}=\left(\begin{array}{cccc}
+1 & x_{12} & \ldots & x_{1k}\\
+\vdots& \vdots & \ddots & \vdots \\
+1 & x_{n2} & \ldots & x_{nk}\\
+\end{array}\right), \boldsymbol{\hat \beta}=\left(\begin{array}{c}
+\beta_1\\
+\vdots\\
+\beta_k
+\end{array}\right), \boldsymbol{\hat u}=\left(\begin{array}{c}
+u_1\\
+\vdots\\
+u_n
+\end{array}\right)
+\tag{1}
+$$
+
+Na notação matricial, reescreve-se (1) como:
+
+$$
+Y=X\hat \beta+\hat u
+\tag{2}
+$$
+
+O modelo de regressão com $k>2$ variáveis é conhecido como **modelo de regressão múltipla**. O **modelo de regressão múltipla** é uma extensão do modelo de regressão simples. Contudo, as fórmulas matemáticas usadas para calcular $\hat \beta_1$ e $\hat \beta_2$ no modelo simples nao podem ser usadas no modelo múltiplo.
+
+Uma forma fácil de se trabalhar com modelos de regressão múltipla é usando algebra matricial. A maior vantagem é que a solução para se estimar os coeficientes pode ser usado para simples e múltipla com qualquer número de variáveis explicativas.
+
+Para se obter a solução do estimador de $\beta$ na forma matricial, inicialmente se escreve a função de regressão com k-variáveis:
+
+$$
+Y_i=\hat \beta_1+ \hat \beta_2 X_{2i}+\hat \beta_3 X_{3i}+ \dots+\hat \beta_k X_{ki}+ \hat u_i
+$$
+
+que pode ser escrito na forma matricial: com Y sendo um vetor coluna nx1; X uma matriz nxk; $\hat \beta$ um vetor coluna kx1 e o termo estocástico um vetor coluna nx1.
+
+Os estimadores de MQO são obtidos pela minimização de:
+
+$$
+\sum \hat u_i^2= \sum(Y_i- \hat \beta_1 - \hat \beta_2 X_{2i}- \dots -\hat \beta_k X_{ki})^2
+\tag{3}
+$$
+
+com $\sum \hat u_i^2$ sendo a soma de quadrados dos resíduos. Matricialmente, a soma do quadrados dos resíduos é dada por $\hat u' \hat u$. A partir de (2), obtem-se
+
+$$
+\hat u=Y - X\hat \beta
+$$
+
+Assim: 
+
+$$
+\sum \hat u_i^2 = \hat u'\hat u=(Y-X\hat \beta)'(Y-X\hat \beta)
+$$
+
+
+$$
+=Y'Y-Y'X\hat \beta-\hat \beta' X'Y+ \hat \beta' X'X \hat \beta
+$$
+
+dado que $Y'X\hat \beta$ é um escalar, é igual a sua transposta $\hat \beta'X'Y$. O último termo é a forma quadrática dos elementos de $\beta$. Então,  
+
+
+$$
+\hat u'\hat u=Y'Y-2\hat \beta'X'Y+\hat \beta' X'X \hat \beta
+$$
+
+que é a função que desejamos minimizar. Para encontrar o ponto de ótimo, deve-se derivar a função e igualá-la a zero.
+
+$$
+\frac {\partial \hat u'\hat u}{\partial \hat \beta}=-2X'Y+2X'X\hat \beta=0
+\tag{4}
+$$
+
+$$
+X'X\hat \beta=X'Y
+\tag{5}
+$$ 
+
+multiplicando os 2 lados por $(X'X)^{-1}$
+
+$$
+(X'X)^{-1}X'X\hat \beta=(X'X)^{-1}X'Y
+\tag{6}
+$$ 
+
+tem-se
+
+$$
+\hat \beta=(X'X)^{-1}X'Y
+\tag{7}
+$$ 
+
+<br>
+
+## Viés de Estimadores dos $\beta$'s
+
+<br>
+
+Pode-se demonstrar que o $\beta$ estimado por MQO não é viesado da seguinte forma: 
+
+$$
+\hat \beta=(X'X)^{-1}X'Y
+$$
+
+$$
+\hat \beta=(X'X)^{-1}X'(X\beta + u)
+$$
+
+$$
+\hat \beta=(X'X)^{-1}X'X\beta + (X'X)^{-1}X'u
+$$
+
+$$
+\hat \beta=I\beta + (X'X)^{-1}X'u
+$$
+
+$$
+E(\hat \beta|X)=\beta +E[(X'X)^{-1}X'u|X]
+$$
+
+$$
+E(\hat \beta|X)=\beta
+$$
+
+<br>
+
+## Matriz de Variância/Covariância dos $\beta$'s
+
+<br>
+
+Por definição, a matriz de variância/covariância dos $\beta$'s é dada por: 
+
+$$
+\mathbf{var-cov(\hat \beta)}=E{[\hat \beta- \beta][\hat \beta -\beta]'}
+$$
+
+$$
+\mathbf{var-cov(\hat \beta)}=E[\mathbf{(X'X)^{-1}X'\boldsymbol{uu}'X(X'X)^{-1}]}
+$$
+
+$$
+\mathbf{var-cov(\hat \beta)}=\mathbf{(X'X)^{-1}X}'E[\boldsymbol{uu}']\mathbf{X(X'X)^{-1}}
+$$
+
+$$
+\mathbf{var-cov(\hat \beta)}=\mathbf{(X'X)^{-1}X}'\sigma^2\mathbf{X(X'X)^{-1}}
+$$
+
+$$
+\mathbf{var-cov(\hat \beta)}=\sigma^2\mathbf{(X'X)^{-1}X'X(X'X)^{-1}}=\sigma^2(\mathbf{X'X})^{-1}
+$$
+
+<br>
+
+$$
+\mathbf{var-cov(\hat \beta)}=\left[\begin{array}{cccc}
+var(\hat \beta_1) & cov(\hat \beta_1, \hat \beta_2) & \ldots & cov(\hat \beta_1, \hat \beta_k) \\ 
+cov(\hat \beta_2, \hat \beta_1) & var(\hat \beta_2)  & \ldots & cov(\hat \beta_2, \hat \beta_k) \\ 
+\vdots &\vdots  &\ddots  &\vdots  \\ 
+cov(\hat \beta_k, \hat \beta_1) & cov(\hat \beta_k, \hat \beta_2)  & \ldots & var(\hat \beta_k) \\ 
+\end{array} \right]
+$$ 
+
+Os elementos da diagonal desta matriz são as variâncias dos estimadores dos parâmetros individuais, e os elementos fora da diagonal são as covariâncias entre estes estimadores. 
+
+como $\mathbf{\hat \sigma^2}$ é desconhecido, usa-se sua estimativa:
+
+$$
+\mathbf{\hat \sigma^2}=\frac{SQR}{n-k}=\mathbf{\frac{y'y-\hat \beta'X'y}{n-k}}
+\tag{8}
+$$
+Por definição, o $R^2$ por via matricial é calculado por:  
+
+$$
+\mathbf{R^2=\frac{\hat \beta' X'y-n\bar{Y}^2}{y'y-n\bar Y^2}}
+\tag{9}
+$$ 
+Por definição, o $F$ por via matricial é:  
+
+$$
+\mathbf{F=\frac{(\hat \beta' X'y-n\bar{Y}^2)/(k-1)}{(y'y-\hat \beta' X'y)/(n-k)}}
+\tag{10}
+$$ 
+<br>
+
+## Demonstração no R - Modelos de Regressão Múltipla
+
+<br>
+	
+``` {r pacotes, warning=FALSE, message=FALSE}
+#Direcionado o R para o Diretorio a ser trabalhado
+setwd('C:/Users/Joao Ricardo Lima/Dropbox/tempecon/facape')
+
+#Limpa o Ambiente Global
+rm(list=ls())
+
+options(digits=4)
+
+#Dados do Woldridge
+library(wooldridge)
+library(tseries)
+```
+
+``` {r aula6_1, warning=FALSE, message=FALSE}
+
+# Puxando os dados do pacote Wooldridge
+data("wage1")
+
+#Estimando a 1 Regressão Multipla
+
+reg1 <- lm(wage ~ educ + exper + tenure, data=wage1) #tenure = anos no emprego atual
+summary(reg1)
+
+#Testes de Normalidade
+jarque.bera.test(reg1$residuals)
+
+#Regressão com variáveis em log
+reg2<-lm(log(wage) ~ educ + log(exper) + tenure, data=wage1)
+summary(reg2)
+
+jarque.bera.test(reg2$residuals)
+```
+
+
+``` {r aula6_2, warning=FALSE, message=FALSE}
+data("econmath")
+summary(econmath)
+
+#Estimação do modelo 
+reg3<-lm(score ~ study + age + actmth, data=econmath)
+summary(reg3)
+
+#Teste de Normalidade
+shapiro.test(reg3$residuals)
+
+#Estimação do modelo com variáveis transformadas
+reg4<-lm(score~study+log(age)+log(actmth), data=econmath)
+summary(reg4)
+
+#Teste de Normalidade
+shapiro.test(reg4$residuals)
+```
+
+``` {r aula6_3, warning=FALSE, message=FALSE}
+data("crime2")
+
+#Estimação do modelo 
+reg5 <- lm(crimes ~ pop + unem + officers + pcinc, data=crime2)
+summary(reg5)
+
+#Verificação dos Resíduos
+qqnorm(reg5$residuals)
+qqline(reg5$residuals)
+
+#Teste de Normalidade
+shapiro.test(reg4$residuals)
+
+#Estimação do modelo com variáveis transformadas
+reg6<-lm(log(crimes)~log(pop)+log(unem)+log(officers)+log(pcinc), data=crime2)
+summary(reg6)
+
+#Verificação dos Resíduos
+qqnorm(reg6$residuals)
+qqline(reg6$residuals)
+
+#Teste de Normalidade
+shapiro.test(reg6$residuals)
+```
