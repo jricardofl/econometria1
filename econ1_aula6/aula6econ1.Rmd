@@ -41,10 +41,56 @@ Já um **vetor** é um conjunto de números ordenados em uma linha ou coluna, de
 Tipos comuns de matrizes em econometria:
   
 I) Matrizes simétricas
+
+$$
+\mathbf{S}=\left[\begin{array}{ccccc}
+                 1 & 0 & 0 & 0 & 0 \\ 
+                 0 & 2 & 0 & 0 & 0 \\ 
+                 0 & 0 & 3 & 0 & 0 \\ 
+                 0 & 0 & 0 & 4 & 0 \\
+                 0 & 0 & 0 & 0 & 5 \\
+                 \end{array} \right]
+$$
 II) Matrizes diagonais
+
+$$
+\mathbf{D}=\left[\begin{array}{ccccc}
+                 3 & 0 & 0 & 0 & 0 \\ 
+                 0 & 13 & 0 & 0 & 0 \\ 
+                 0 & 0 & 26 & 0 & 0 \\ 
+                 0 & 0 & 0 & 14 & 0 \\
+                 0 & 0 & 0 & 0 & 9 \\
+                 \end{array} \right]
+$$
 III) Matriz escalar
+
+$$
+\mathbf{E}=\left[\begin{array}{c}
+                 3
+                 \end{array} \right]
+$$
 IV) Matriz identidade
+
+$$
+\mathbf{I}=\left[\begin{array}{ccccc}
+                 1 & 0 & 0 & 0 & 0 \\ 
+                 0 & 1 & 0 & 0 & 0 \\ 
+                 0 & 0 & 1 & 0 & 0 \\ 
+                 0 & 0 & 0 & 1 & 0 \\
+                 0 & 0 & 0 & 0 & 1 \\
+                 \end{array} \right]
+$$
 V) Matriz triangular (superior e inferior)
+
+$$
+\mathbf{I}=\left[\begin{array}{ccccc}
+                 1 & 3 & 6 & 10 & 20 \\ 
+                 0 & 31 & 60 & 4 & 18 \\ 
+                 0 & 0 & 9 & 10 & 110 \\ 
+                 0 & 0 & 0 & 4 & 77 \\
+                 0 & 0 & 0 & 0 & 3 \\
+                 \end{array} \right]
+$$
 
 <br>
 
@@ -54,11 +100,71 @@ V) Matriz triangular (superior e inferior)
 
 a) Igualdade: **A=B** $\iff a_{ik}=b_{ik}$;
 
+$$
+\mathbf{A}=\left[\begin{array}{ccc}
+                 1 & 3 & 6 \\ 
+                 0 & 31 & 60 \\ 
+                 0 & 0 & 9 \\
+                 \end{array} \right]=\mathbf{B}=\left[\begin{array}{ccc}
+                 1 & 3 & 6 \\ 
+                 0 & 31 & 60 \\ 
+                 0 & 0 & 9 \\
+                 \end{array} \right]
+$$
+
 b) Transposição: **B=A'** $\iff b_{ik}=a_{ki}$
+
+$$
+\mathbf{A}=\left[\begin{array}{ccc}
+                 1 & 3 & 6 \\ 
+                 0 & 31 & 60 \\ 
+                 0 & 0 & 9 \\
+                 \end{array} \right]
+$$
+$$
+\mathbf{B}=\mathbf{A'}=\left[\begin{array}{ccc}
+                              1 & 0 & 0 \\ 
+                              3 & 31 & 0 \\ 
+                              6 & 60 & 9 \\
+                            \end{array} \right]
+$$
 		
-	Se **A** é simétrica, então **A=A'**
+Se **A** é simétrica, então **A=A'**
+
+$$
+\mathbf{A}=\left[\begin{array}{ccc}
+                 1 & 3 & 6 \\ 
+                 3 & 31 & 60 \\ 
+                 6 & 60 & 9 \\
+                 \end{array} \right]
+$$
+
+
+$$
+\mathbf{A'}=\mathbf{A}=\left[\begin{array}{ccc}
+                            1 & 3 & 6 \\ 
+                            3 & 31 & 60 \\ 
+                            6 & 60 & 9 \\
+                            \end{array} \right]
+$$
 
 c) Adição de matrizes: **C=A+B** $\rightarrow [a_{ik}+b_{ik}]$
+
+$$
+\left[\begin{array}{ccc}
+                 1 & 3 & 6 \\ 
+                 0 & 31 & 60 \\ 
+                 0 & 0 & 9 \\
+                 \end{array} \right]+\left[\begin{array}{ccc}
+                 2 & 4 & 7 \\ 
+                 1 & 13 & 0 \\ 
+                 4 & 20 & 19 \\
+                 \end{array} \right]=\mathbf{C}\left[\begin{array}{ccc}
+                 3 & 7 & 13 \\ 
+                 1 & 44 & 60 \\ 
+                 4 & 20 & 28 \\
+                 \end{array} \right]
+$$
 
 d) Matrizes são multiplicadas usando o **produto interno** o qual, para dois vetores **a** e **b** é dado por:
 
@@ -72,18 +178,100 @@ $$
 C=AB\rightarrow c_{ik}=\mathbf{a_i'b_k}
 $$
 
+### Exemplo de multiplicação com matrizes quadradas
+
+$$
+\left[\begin{array}{cc}
+                 1 & 3 \\ 
+                 0 & 31 \\ 
+                 \end{array} \right]x\left[\begin{array}{cc}
+                 2 & 4  \\ 
+                 1 & 13 \\ 
+                 \end{array} \right]=\mathbf{C}=\left[\begin{array}{cc}
+                  (1x2)+(3x1) & (1x4)+(3x13) \\ 
+                  (0x2)+(31x1) & (0x4)+(31x13)\\ 
+                 \end{array} \right]
+$$
+$$
+\mathbf{C}=\left[\begin{array}{cc}
+                  5 & 43 \\ 
+                  31 & 403\\ 
+                 \end{array} \right]
+$$
+<br>
+
+### Exemplo de multiplicação com matrizes com dimensões diferentes
+
+<br>
+
+$$
+\mathbf{A=}\left[\begin{array}{cc}
+                 1 & 3 \\ 
+                 0 & 31 \\ 
+                 15 & 4 \\ 
+                 \end{array} \right]x\mathbf{B}=\left[\begin{array}{cc}
+                 2 & 4  \\ 
+                 1 & 13 \\ 
+                 \end{array} \right]=\mathbf{C}=\left[\begin{array}{ccc}
+                 (1x2)+(3x1) & (1x4)+(3x13)   \\ 
+                 (0x2)+(31x1)& (0x4)+(31x13) \\ 
+                 (15x2)+(4x1) & (15x4)+(4x13)\\ 
+                 \end{array} \right]
+$$
+
+$$
+\mathbf{C}=\left[\begin{array}{ccc}
+                 5 & 43  \\ 
+                 31& 403 \\ 
+                 34 & 99 \\ 
+                 \end{array} \right]
+$$
+A matriz A possui dimensão 3x2 e a matriz B possui dimensão 2x2. Como o número de colunas da matriz A é igual ao número de linhas da matriz B, a multiplicação pode ser feita. O resultado será uma matriz C com dimensão 3x2.
+
+Não seria possível multiplicar a matriz B pela matriz A, pois o número de colunas da matriz B não é igual ao número de linhas da matriz A. 
+
+
 <br>
 
 ## Soma de Valores
 
 <br>
 
-Seja **i** um vetor coluna de $1's$. Então:
+Seja **i** um vetor coluna de $1's$ e **x** um vetor coluna qualquer. Então:
 
 $$
-		\sum\limits_{i=1}^{n}x_i=x_1+x_2+\ldots+x_n=\mathbf{i'x}
+\sum\limits_{i=1}^{n}x_i=x_1+x_2+\ldots+x_n=\mathbf{i'x}
 $$
-Se todos os elementos em **x** são iguais a uma constante *a*, então $\mathbf{x}=a\mathbf{i}$ e
+
+$$
+\mathbf{x}=\left[\begin{array}{c}
+                 5  \\ 
+                 31 \\ 
+                 34 \\ 
+                 \end{array} \right]
+$$
+
+$$
+\mathbf{i}=\left[\begin{array}{c}
+                 1  \\ 
+                 1 \\ 
+                 1 \\ 
+                 \end{array} \right]
+$$
+$$
+\mathbf{i'}=\left[\begin{array}{ccc}
+                 1 &  1 & 1 \\ 
+                 \end{array} \right] x \mathbf{x}=\left[\begin{array}{c}
+                 5  \\ 
+                 31 \\ 
+                 34 \\ 
+                 \end{array} \right]=\sum\limits_{i=1}^{n}x_i=70
+$$
+É possível multiplicar pois a matriz $i'$ tem dimensão 1x3 e a matriz x tem dimensão 3x1. O número de colunas da matriz $i'$ é igual ao número de linhas da matriz x. A matriz resultante possui o número de linhas de $i'$ e o número de colunas de x, ou seja, vai ser 1x1. 
+
+Se todos os elementos em **x** são iguais a uma constante *a*, então 
+
+$\mathbf{x}=a\mathbf{i}$ e
 
 $$
 \sum\limits_{i=1}^{n}x_i=\mathbf{i'}(a\mathbf{i})=a(\mathbf{i'i})=na
