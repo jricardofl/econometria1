@@ -581,9 +581,13 @@ $$
 onde:
 
 lwage = o logaritmo natural do salário
+
 educ = anos de educação
+
 exper = anos de experiência (trabalhando)
+
 tenure = anos trabalhando com o empregador atual
+
 
 ``` {r aula6_0, warning=FALSE, message=FALSE}
 # Define alguns valores úteis: 
