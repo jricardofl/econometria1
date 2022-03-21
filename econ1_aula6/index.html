@@ -1527,7 +1527,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Aula 6 - Introdução à Econometria</h1>
 <h4 class="author">João Ricardo F. de Lima</h4>
-<h4 class="date">17 de março de 2022.</h4>
+<h4 class="date">21 de março de 2022.</h4>
 
 </div>
 
@@ -1865,8 +1865,30 @@ k=1,\ldots,K.
 \]</span></p>
 <p><br></p>
 </div>
-<div id="matrizes-inversas" class="section level2" number="1.7">
-<h2><span class="header-section-number">1.7</span> Matrizes
+<div id="menor-e-cofator" class="section level2" number="1.7">
+<h2><span class="header-section-number">1.7</span> Menor e Cofator</h2>
+<p><br></p>
+<p>Se a i-ésima linha e a j-ésima coluna de uma matriz A de origem N x N
+são excluídas, o determinante da submatriz resultante é chamado de o
+<strong>menor</strong> do elemento <span class="math inline">\(a_{ij}\)</span> (o elemento na interseção da
+i-ésima linha e a j-ésima coluna) e é denotado por <span class="math inline">\(|M_{ij}|\)</span>.</p>
+<p>O cofator do elemento <span class="math inline">\(a_{ij}\)</span> de
+uma matriz A de origem N x N, denotado por <span class="math inline">\(c_{ij}\)</span>, é definido como</p>
+<p><span class="math display">\[
+c_{ij}=(-1)^{i+j}|M_{ij}|
+\]</span></p>
+<p>um cofator é um menor sinalizado, com sinal positivo se i + j for par
+e negativo se i + j for ímpar.</p>
+<p>Substituindo os elementos <span class="math inline">\(a_{ij}\)</span>
+de uma matriz A pelos seus cofatores, se obtém uma matriz conhecida como
+<strong>matriz de cofator</strong> de A, denotada por (cof A).</p>
+<p>A <strong>matriz adjunta</strong>, escrita como (adj A), é a
+transposta da matriz de cofator; <span class="math inline">\((adj\)</span> <span class="math inline">\(A) =
+(cof\)</span> <span class="math inline">\(A)&#39;\)</span>.</p>
+<p><br></p>
+</div>
+<div id="matrizes-inversas" class="section level2" number="1.8">
+<h2><span class="header-section-number">1.8</span> Matrizes
 Inversas</h2>
 <p><br></p>
 <p>Uma matriz quadrada <strong>A</strong> <span class="math inline">\(p
@@ -1882,13 +1904,26 @@ propriedades:</p>
 <p><span class="math display">\[
 (\mathbf{A&#39;})^{-1}=(\mathbf{A}^{-1})&#39;; \quad
 (\mathbf{A}^{-1})^{-1}=\mathbf{A}
+\]</span> Se A é quadrada e não singular (<span class="math inline">\(|A| \neq 0\)</span>), a sua inversa <span class="math inline">\(A^-1\)</span> pode ser encontrada da seguinte
+forma:</p>
+<p><span class="math display">\[
+\mathbf{A}^{-1}=\frac{1}{\mathbf{|A|}}(adj \quad \mathbf{A})
 \]</span></p>
+<p>Os passos envolvidos no cálculo são os seguintes:</p>
+<ol style="list-style-type: decimal">
+<li>Descubra o determinante de A. Se não for zero, execute o passo
+2.</li>
+<li>Substitua cada elemento ai j de A por seu cofator para obter a
+matriz de cofator.</li>
+<li>Transponha a matriz de cofator para obter a matriz adjunta.</li>
+<li>Divida cada elemento da matriz adjunta por |A|.</li>
+</ol>
 <p><strong>Matrizes singulares</strong> são matrizes que não possuem
 inversa.</p>
 <p><br></p>
 </div>
-<div id="matrizes-particionadas" class="section level2" number="1.8">
-<h2><span class="header-section-number">1.8</span> Matrizes
+<div id="matrizes-particionadas" class="section level2" number="1.9">
+<h2><span class="header-section-number">1.9</span> Matrizes
 particionadas</h2>
 <p><br></p>
 <p>Em algumas situações é útil agrupar os elementos de uma matriz em
@@ -2022,30 +2057,96 @@ X&#39;X\hat \beta=X&#39;Y
 \]</span></p>
 <p><br></p>
 </div>
-<div id="viés-de-estimadores-dos-betas" class="section level2" number="2.2">
-<h2><span class="header-section-number">2.2</span> Viés de Estimadores
-dos <span class="math inline">\(\beta\)</span>’s</h2>
-<p><br></p>
-<p>Pode-se demonstrar que o <span class="math inline">\(\beta\)</span>
-estimado por MQO não é viesado da seguinte forma:</p>
+<div id="demonstração-no-r" class="section level2" number="2.2">
+<h2><span class="header-section-number">2.2</span> Demonstração no
+R</h2>
+<pre class="r"><code>library(wooldridge)
+# Carrega a base &#39;wage2&#39;
+data(wage2)
+# Remove os valores ausentes (NAs)
+sal &lt;- na.omit(wage2)
+
+# Dimensão da base (# linhas  # colunas)
+dim(sal)</code></pre>
+<pre><code>## [1] 663  17</code></pre>
+<pre class="r"><code># Descrição da base
+str(sal)</code></pre>
+<pre><code>## &#39;data.frame&#39;:    663 obs. of  17 variables:
+##  $ wage   : int  769 825 650 562 600 1154 1000 930 1318 1792 ...
+##  $ hours  : int  40 40 40 40 40 45 40 43 38 40 ...
+##  $ IQ     : int  93 108 96 74 91 111 95 132 119 118 ...
+##  $ KWW    : int  35 46 32 27 24 37 44 44 24 47 ...
+##  $ educ   : int  12 14 12 11 10 15 12 18 16 16 ...
+##  $ exper  : int  11 11 13 14 13 13 16 8 7 9 ...
+##  $ tenure : int  2 9 7 5 0 1 16 13 2 9 ...
+##  $ age    : int  31 33 32 34 30 36 36 38 28 34 ...
+##  $ married: int  1 1 1 1 0 1 1 1 1 1 ...
+##  $ black  : int  0 0 0 0 0 0 0 0 0 0 ...
+##  $ south  : int  0 0 0 0 0 0 0 0 0 0 ...
+##  $ urban  : int  1 1 1 1 1 0 1 0 1 1 ...
+##  $ sibs   : int  1 1 4 10 1 2 1 1 3 1 ...
+##  $ brthord: int  2 2 3 6 2 3 1 1 1 1 ...
+##  $ meduc  : int  8 14 12 6 8 14 12 13 10 12 ...
+##  $ feduc  : int  8 14 12 11 8 5 11 14 10 12 ...
+##  $ lwage  : num  6.65 6.72 6.48 6.33 6.4 ...
+##  - attr(*, &quot;time.stamp&quot;)= chr &quot;25 Jun 2011 23:03&quot;
+##  - attr(*, &quot;na.action&quot;)= &#39;omit&#39; Named int [1:272] 2 6 8 12 13 19 20 21 31 36 ...
+##   ..- attr(*, &quot;names&quot;)= chr [1:272] &quot;2&quot; &quot;6&quot; &quot;8&quot; &quot;12&quot; ...</code></pre>
+<p>O Modelo proposto para ser estimado é:</p>
 <p><span class="math display">\[
-\hat \beta=(X&#39;X)^{-1}X&#39;Y
-\]</span></p>
-<p><span class="math display">\[
-\hat \beta=(X&#39;X)^{-1}X&#39;(X\beta + u)
-\]</span></p>
-<p><span class="math display">\[
-\hat \beta=(X&#39;X)^{-1}X&#39;X\beta + (X&#39;X)^{-1}X&#39;u
-\]</span></p>
-<p><span class="math display">\[
-\hat \beta=I\beta + (X&#39;X)^{-1}X&#39;u
-\]</span></p>
-<p><span class="math display">\[
-E(\hat \beta|X)=\beta +E[(X&#39;X)^{-1}X&#39;u|X]
-\]</span></p>
-<p><span class="math display">\[
-E(\hat \beta|X)=\beta
-\]</span></p>
+log(wage)= \beta_0 +\beta_1 educ + \beta_2 exper + \beta_3exper^2+
+\beta_4 tenure + u
+\]</span> onde:</p>
+<p>lwage = o logaritmo natural do salário educ = anos de educação exper
+= anos de experiência (trabalhando) tenure = anos trabalhando com o
+empregador atual</p>
+<pre class="r"><code># Define alguns valores úteis: 
+## N = número de observações
+## k = número de betas estimados
+## const = vetor com 1&#39;s (uns)
+
+N &lt;- 663
+k &lt;- 5
+const &lt;- rep(1, 663)
+
+# Monta a matriz de observações da regressão
+X &lt;- cbind(const, sal$educ, sal$exper, sal$exper^2, sal$tenure)
+X &lt;- as.matrix(X)
+
+# Define o nome das colunas da matriz de observações
+colnames(X) &lt;- c(&quot;const&quot;, &quot;educ&quot;, &quot;exper&quot;, &quot;exper2&quot;, &quot;tenure&quot;)
+
+# Função para verificar as primeiras linhas da matriz X
+head(X)</code></pre>
+<pre><code>##      const educ exper exper2 tenure
+## [1,]     1   12    11    121      2
+## [2,]     1   14    11    121      9
+## [3,]     1   12    13    169      7
+## [4,]     1   11    14    196      5
+## [5,]     1   10    13    169      0
+## [6,]     1   15    13    169      1</code></pre>
+<pre class="r"><code># Função para verificar as últimas linhas da matriz X
+tail(X)</code></pre>
+<pre><code>##        const educ exper exper2 tenure
+## [658,]     1   12     9     81      2
+## [659,]     1   16     8     64     10
+## [660,]     1   12    11    121      3
+## [661,]     1   12     9     81      3
+## [662,]     1   16    10    100      9
+## [663,]     1   13    10    100      3</code></pre>
+<pre class="r"><code># Define o vetor y (log do salário)
+y &lt;- sal$lwage
+
+# O operador de multiplicação matricial é ``%*%``. 
+
+# Computa a estimativa para os betas
+(beta &lt;- solve(t(X) %*% X) %*% t(X) %*% y)</code></pre>
+<pre><code>##                [,1]
+## const  5.5430835393
+## educ   0.0763885961
+## exper  0.0079634323
+## exper2 0.0004488306
+## tenure 0.0095632078</code></pre>
 <p><br></p>
 </div>
 <div id="matriz-de-variânciacovariância-dos-betas" class="section level2" number="2.3">
@@ -2094,69 +2195,198 @@ desconhecido, usa-se sua estimativa:</p>
 \mathbf{\hat \sigma^2}=\frac{SQR}{n-k}=\mathbf{\frac{y&#39;y-\hat
 \beta&#39;X&#39;y}{n-k}}
 \tag{8}
-\]</span> Por definição, o <span class="math inline">\(R^2\)</span> por
-via matricial é calculado por:</p>
+\]</span></p>
+<pre class="r"><code># Computa o resíduo da regressão
+u_hat &lt;- y - X %*% beta
+
+# Histograma dos resíduos
+hist(u_hat, breaks = 30, freq = FALSE, main = &quot;Histograma dos resíduos&quot;)</code></pre>
+<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABUAAAAPACAMAAADDuCPrAAAA3lBMVEUAAAAAADoAAGYAOjoAOmYAOpAAZrY6AAA6ADo6OgA6Ojo6OmY6ZmY6ZpA6ZrY6kLY6kNtmAABmADpmOgBmOjpmZgBmZjpmZmZmZpBmkLZmkNtmtrZmtttmtv+QOgCQZgCQZjqQZmaQkGaQkJCQkLaQtpCQtraQttuQtv+Q29uQ2/+2ZgC2Zjq2kDq2kGa2kJC2tpC2tra2ttu227a229u22/+2///T09PbkDrbkGbbtmbbtpDbtrbb25Db27bb29vb2//b/7bb////tmb/25D/27b/29v//7b//9v///+33pYDAAAACXBIWXMAAB2HAAAdhwGP5fFlAAAgAElEQVR4nO3dfWPTSJemcZkO8RIaNmzYdudZYOnZWZiH0FnMhJ40YRImL+B8/y+0kl8iyS7ZUsl1dJd1/f7ohlRsl+ucuvGLLCf3AAAvSdcTAIBYEaAA4IkABQBPBCgAeCJAAcATAQoAnghQAPBEgAKAJwIUADwRoADgiQAFAE8EKAB4IkABwBMBCgCeCFAA8ESAAoAnAhQAPBGgAOCJAAUATwQoAHgiQAHAEwEKAJ4IUADwRIACgCcCFAA8EaAA4IkABQBPBCgAeCJAAcATAQoAnghQAPBEgAKAJwIUADwRoADgiQAFAE8EKAB4IkABwBMBCgCeCFAA8ESAAoAnAhQAPBGgAOCJAAUATwQoAHgiQAHAEwEKAJ4IUADwRIACgCcCFAA8EaAA4IkABQBPBCgAeCJAAcATAQoAnghQAPBEgAKAJwIUADwRoADgiQAFAE8EKAB4IkABwBMBCgCeCFAA8ESAAoAnAhTYipMk9fi662nAFAG6+26H6c4efHD9/eeL8pDT138End4WTTNsv5vbnq7qo7+WftrljGCAAN197QL04ig5DDzBrekyrk6cK0mA7jgCdPe1CdC7t+kvEKCbZYvqWEgCdMcRoLuvTYBOA4AA3ew8veXXqz8mQHccAbr71gToRgRoPdm/RK5lIkB3HAG6+wjQ7ujNCFtFgO4+ArQ7ejPCVhGgu6/2a6AXvz3J9vvBs/ezv98kucXre5dvs9/5ZfEri0u+TK/zl+Pr2XVPA+N8Fr1/P5kNpH6cHmQ/Gzw9XhwsOX/nejIdePp+flXZFI4Lx1OuXm7J9CK/vLpejivnXJfvZMnqpNMrGU4n9H3tdSy9mOyY0XnhMNHJm+KS+kwUIgjQ3VczQKc/ntub/mg1QG+P8l/J9/UsD6bXtBygH/NL/51f/2B+ZOksQB8G0ni5O3q4qsW1Oy5X8nCRvS+lAHXOdfVOlqxM+u7Nw68/v15zHaUAdc6oOkB9JgoRBOjuqxegN4UdO//ZSoCeF3/l4Zn99ErmF/u/5QA9mP04O77cddlpgB7kP338n/kkFseku29z6d7Nb/3JQ1xVXM5xJ0uWJ12MsUX6Oa+j4l+iwowqA9RrohBBgO6+WgFaSMGHtFgO0Jvyr8w3++TN0o8LgZH/YimKFvF4snzJ1Wt3Xq6g4tbdc3XdyZKlSS/9/n71dRQCdN16OALUb6IQQYDuvqUMmlkO0Ok+fvTP9E8/Zs9gZ9u7+CbSbFcPstcGvw7z65glwN4/86euywGa/d70iva+LH5pdtF5gD7/fj/5c/67e2eLa5+FhvNyBbObyZ76Lp5t71fPteJOLl9bedKDV9f3k/zX3ddRCNCKGVUEqOdEIYIA3X21AvS8kJQnv/z+bv6eSTFATwoJNtv3WR7MwmD2yHD+4KsYoPNXDgsBM5vO64drLDydXyTM+cNVui+XK976/Cr2q+dacSdzlZOejexXLlT+q1UzqghQz4lCBAG6++oH6GDlDd9CgM629+JFyJvFlZRybfaXQoA+PPecfPvjYL9wPXl6zLPmvPBI66aQya7LLd+3lVuvmGvFncyVJ33zcGfm1/jwWu7KdeQLuXY9VgLUd6IQQYDuvloBuvilX37/XHy9rRCghVS7X2TA4dKPZz8tBKjjqedygM5D5bxwPc4jVZ0BWnHrFXOtuJO58qSLD7+n15H/g7F8HcuvhVSsx0qA+k4UIgjQ3VfrTaTiWx+DZ18Wv1vIkGIC3OeHiJd/vHTYzspLlpPLf3mSh1TxsKNilKwGaPlyuYpbr5hrxZ1currFDa++G5Tduvs6lh7KV63HSoD6ThQiCNDdV+8wpp/50YjJ7G2bzHKA5kepL/5ajoD8l4qPKGfuTl/mj4XdATq/nvKMVy+Xq7j1irlW3Mmlqys/fCw5rLqOqgBdWg93gHpMFCII0N1X80D6yWnxqf78hy0DtHD4zdfyCwm1A9R1uVzDAHXfyYqrqwhQ53VsO0A3TRQiCNDdV/90dj9Onzzs2dmubvkUPv/1+ad7Dn7//F9Lr4GuD1Dn5XI37luvmGvFncw5AtR5IoCV61h6DXTDeuQv5/pOFCII0N3X7HygV//v5XTLFg51r34T6XW9N00W7y+/f7jNugHqvlyuwZtIxUuW72TO8a9B5ZlUStfR7E2k/K74ThQiCNDdV+9NpMvTl//tw8ovbD6MqZRrFYftOK6nZoC6L5eruPWKuVbcyZzj+ffyh4Dc17H8ka7V9ShG5eyzB2sOY9o4UYggQHdfnQCdbeT9wi+sPAJ1HPOd/f7aA+ldz4YLhwptDNCKy+Wqbt0516o7mStH5iz+5o+/B78en11XXof7QPrijPLQXPy44kD6WhOFCAJ099V6BDr/IFD2du/FUR4jJ/OfXn5f5Mmaj3JernyUsxygg1cPH01sFKArlyuY3/r7pQ+SuudacSdzrpcks88lTf5++HSp+zqKZ2VZO6P3+TK9bjFRiCBAd5/XyUTmSfXw4fDD4l9Kv1Lj5BmrF509rtv8FN59uYKqk4k451pxJ3NLAbr8EYTXldex+WQiqz9+3WKiEEGA7r56byIthcVh4Xcf/r7xdHaP/udDYJSzqJgIBw+nvNscoO7LFRWPmPy18BvOubrvZG75Vc/yWeWc54cqvEC7eCbunlHhtEuD37L/rjud3aaJQgQBuvtqvgs//QbjxQ5/tfjl+TPneQhcFM79m1/hxhMI3xfOGjx49fCx8jqHMTkvVzJ5mPfhbTFinXN138kHK28b3R2t/rrrOkqHM1TM6OGI1r0P09tZPKr0mShEEKC7r/ZhTHf/Mj2X8C9P3xciZPbtFL8uTmxx98fs2yfOSjcx/aXsOzkqA/R+8jW78ukXZTy8M1XnQHrX5ZZcTqd4/P3+tvwY1TlX551ccLzvPvu6jUHp11evY+l4MPeMfnx8Mr+mUoD6TBQiCFBsU1xfQge0RICincmbg9G7s3rHngM7hgBFO/MjjVa/GgjYfQQoWpp/hUV2zOLsCEcO+kZvEKBoaeV8zTyDR28QoGhr6VBwPjSD/iBA0VrplJ3PyU/0BwGKLbj4bXrM4uDpMd8fiT4hQAHAEwEKAJ4IUADwRIACgCcCFAA8EaAA4IkABQBPBCgAeCJAAcATAQoAnghQAPBEgAKAJwIUADwRoADgiQAFAE8EKAB4IkABwBMBCgCeCFAA8ESAAoAnAhQAPBGgAOCJAAUATwQoAHgiQAHAEwEKAJ4IUADwRIACgCcCFAA8EaAA4IkABQBPBCgAeCJAAcATAQoAnghQAPBEgAKAJwIUADwRoADgiQAFAE8EKAB4Chqgk9OXB7/+6/XD33++SB79FfIGAcBQyAD9e5hkBseLCCVAAeySgAF6niw8nicoAQpgl4QL0Nv08efe+6urj9n/Z7FJgALYJeEC9HzxyPPuaJGgBCiAXRIsQCdvkuR1/sdplhKgAHZJsAAthmWWoPv3BCiA3WISoNlfkkMCFMBusQnQ7B2lwQcCFMBOsXgNNHOTJI++EKAAdknQd+H3y3999O8EKIAdEvY40Gff87+fTI+pJ0AB7IzAn0Qq5uVHAhTATgn5Wfivw3Jepn8nQAHsjrBnY7r4/br0949DAhTAzuB8oADgiQAFAE8EKAB4IkABwJNpgK7/JFKyynBuANCUdoCSoACECQXoKgIUgDLbiPpx9X3zL+UIUADKpCOKAAWgTDqiCFAAyqQjigAFoEw6oghQAMqkI4oABaBMOqIIUADKpCOKAAWgTDqiCFAAykJ+rbELn0QCsDMIUADwFC6i7o4IUAA7LWBETd4kyWGrayBAASgLGVFZgr5ucwUEKABlQSOq6enrlhGgAJSFjaibdk/iCVAocr49ylnAeylstdMn8W0egtKL0LMhPmnaXglc7dvR6N/8L00vQk+S/Mc6NG2vSFebXoQeAhQ56WrTi9BDgCInXW16EXoIUOSkq00vQg8Bipx0telF6CFAkZOuNr0IPQQoctLVphehhwBFTrra9CL0EKDISVebXoQeAhQ56WrTi9BDgCInXW16EXoIUOSkq00vQg8Bipx0telF6CFAkZOuNr0IPQQoctLVphehhwBFTrra9CL0EKDISVebXoQeAhQ56WrTi9BDgCInXW16EXoIUOSkq00vQg8Bipx0telF6CFAkZOuNr0IPQQoctLVphehhwBFTrra9CL0EKDISVebXoQeAhQ56WrTi9BDgCInXW16EXoIUOSkq00vQg8Bipx0telF6CFAkZOuNr0IPQQoctLVphehhwBFTrra9CL0EKDISVebXoQeAhQ56WrTi9BDgCInXW16EXoIUOSkq00vQg8Bipx0telF6CFAkZOuNr0IPQQoctLVphehhwBFTrra9CL0EKDISVebXoQeAhQ56WrTi+hCsgEBigXpatOLsLcpPglQ5KSrTS/C3oaA/A8CFDnpatOLsEeAoj7patOLsEeAoj7patOLsEeAoj7patOLsEeAoj7patOLsEeAoj7patOLsEeAoj7patOLsEeAoj7patOLsEeAoj7patOLsEeAoj7patOLsEeAoj7patOLsEeAor7g1Z5cfRuPx5+vrj0uSy/CHgGK+sJW+/Jt4Rw2z86aXpxehD0CFPWFrPbd0dJpwPY+NLsCehH2CFDUF7DaN8MsNA9GM0+yvwxeN7oGehH2CFDUF67aP1+kgfm+8IOLNFAf/dXkKuhF2CNAUV+4ap+vxGUWqYdNroJehD0CFPUFq/bkTZIsP2G/SZLHTd6NpxdhjwBFfcGqnT7cXHm+7vrZOvQi7BGgqI8ABUoIUNQX8in8YPmoJZ7CQx8BivrCVftkJS2zl0X3m1wFvQh7BCjqC1ft22GaoF8KP7hL83PlQela9CLsEaCoL2C1z6eHzo/ejTOfZkfSNzqKiQBFBwhQ1Bey2l+HSx/lHLxqdgX0IuwRoKgvaLUnp8UIHRw3PSMTvQh7BCjqC13tyeX4dDQaHY/PPM5nRy/CT7LehssSoKhLutr0InxsiE8CFFsjXW16ET7aRRwBivqkq00vwgcBCivS1aYX4YMAhRXTaq//LHzjF6sAJwIUVghQ7BwCFFaEAnQVvQgfBCis2Fb7x9X3Jr9OL8IHAQor0tWmF+GDAIUV6WrTi/BBgMKKdLXpRfggQGFFutr0InwQoLAiXW16ET4IUFiRrja9CB8EKKxIV5tehA8CFFakq00vwgcBCishvxfehU8iITgCFFYIUOwcAhRWwlX77ogARScIUFgJWO3Jm6ZfY7yMXoQPAhRWQlY7S9DXba6AXoQPAhRWgla76enrltGL8EGAwkrYat+0exJPL8IHAQorYaudPolv8xCUXoQPAhRWAlf7djT6N/9L04vwQYDCinS16UX4IEBhRbra9CJ8EKCwIl1tehE+CFBYka42vQgfBCisSFebXkQF54kWcgQobEhXm16E04b4JEBhRbra9CKcNmYYAQob0tWmF+FEgEKEdLXpRTgRoBAhXW16EU4EKERIV5tehBMBChHS1aYX4USAQoR0telFOBGgECFdbXoRTgQoREhXm16EEwEKEdLVphfhRIBChHS16UU4EaAQIV1tehFOBChESFebXoQTAQoR0tWmF+FEgEKEdLXpRTgRoBAhXW16EU4EKERIV5tehBMBChHS1aYX4USAQoR0telFOBGgECFdbXoRTtoBuoHRGsGEdDlpNjgRoBAhXU6aDU7aAdrmxhEZ6XLSbHAiQCFCupw0G5wIUIiQLifNBicCFCKky0mzwYkAhQjpctJscCJAIUK6nDQbnAhQiJAuJ80GJwIUIqTLSbPBiQCFCOly0mxwIkAhQrqcNBucCFCIkC4nzQYnAhQipMtJs8GJAIUI6XLSbHAiQCFCupw0G5wIUIiQLifNBicCFCKky0mzwYkAhQjpctJscCJAIUK6nDQbnAhQiJAuJ80GJwIUIqTLSbPBqW2GbbD20gQoCqTLSbPBiQCFCOly0mxwapthbYYJUBRIl5NmgxMBChHS5aTZ4ESAQoR0OWk2OBGgECFdTpoNTgQoREiXk2aDEwEKEdLlpNngRIBChFU5J5efvze+EM0GJwIUIsKW89t4/CX7/91Rdnzy4B8NL06zwYkAhYiQ5fw6zGLz8fX9zXD+EY/0z03QbHAiQCEiYDnP56m5//NF+uhzNHqS/bnRNdBscCJAISJcOW/Th5177z6lT95/S5LD7CdZor5uchU0G5wIUIgIV86T2TP2yZv8gedJw4egNBucCFCICFbOLDinDzdv0ufvH2Y/Sx+UNnoVlGaDEwEKEcHK+fNF8uiv0h9Kf6yFZoMTAQoRBCjiQ4BCRMin8LNn7unzdp7CY6sIUIgI+ibS/vz/szfhp2/D8yYS2iNAISJcOW/S4Hx+dfUxSQ7yx6IcxoQtIEAhImA5TxYfP/rPNDifjcdvG38UiWaDEwEKEQHLOfk4zc/00efiM0nN3kIiQFGBAIWIoOW8/OPg6XH2mPPv2YfhnzX7KDwBCjcCFCKMyjn59sfoXePz2dFscCJAIUK6nDQbnAhQiJAuJ80GJwIUIqTLSbPBiQCFCOly0mxwIkAhwrSc6z8LnzgYTg7xIEAhggBFfAhQiBAK0FU0G5wIUIiwLeePq0bHgtJscCJAIUK6nDQbnAhQiJAuJ80GJwIUIqTLSbPBiQCFiODlnFx9G4/Hn68ankdkimaDEwEKEWHLefm2cEjSs7OmF6fZ4ESAQkTIct4dLR3Vufeh2RXQbHAiQCEiYDlvpicBPRjNPJmeXLnRN3oQoHAjQCEiXDl/vkgD833hBxfDpqekp9ngRIBCRLhynq/EZRaph02ugmaDEwEKESG/F37lKzhvGn6rHM0GJwIUIoKV0/W5dz4Lj60gQCGCAEV8CFCICPkUfrB81BJP4bEVBChEhCvnyUpaZi+L7je5CpoNTgQoRIQr5+0wTdAvhR/cpfm58qB0LZoNTgQoRAQs5/n00PnRu3Hm0+xI+kZHMRGgcCNAISJkOb8Olz7KOXjV7ApoNjgRoBARtJyT02KEDo6bnpGJZoMTAQoRocs5uRyfjkaj4/GZx/nsaDY4RR2gG3S9tmhEul50E5wIUIiQrhfdBKeoA3TDcNdri0ak60U3wYkAhQjpetFNcCJAIUK6XnQTnAhQiJCuF90EJwIUIqTrRTfBiQCFCOl60U1wIkAhQrpedBOcCFCIkK4X3QQnAhQipOtFN8GJAIUI6XrRTXAiQCFCul50E5wIUIiQrhfdBCcCFCKk60U3wYkAhQjpetFNcCJAIUK6XnQTnAhQiJCuF90EJwIUIqTrRTfBiQCFCOl60U1wIkAhQrpedBOcCFCIkK4X3QQnAhQipOtFN8GJAIUI6XrRTXAiQCFCul50E5wIUIiQrhfdBCcCFCKk60U3wYkAhQjpetFNcCJAIUK6XnQTnAhQiJCuF90EJwIUIqTrRTfBiQCFiNV6TT53MA03uglOBChErNbr54vk6VkHM3Ggm+BEgEKEM0BTzxQylG6CEwEKEY56XRxlCZoMnn2xn04Z3QQnAhQinPWanD6ZZejxd+v5lNBNcCJAIaKqXosM/eX42nQ+JXQTnAhQiFhTrx+nw2mG7r3vKkPpJjgRoBCxvl7zDB109DCUboITAQoRa+t18TaZG3ywmlAR3QQnAhQiqut18XL+BP7ybVcJSjfBiQCFiIp6zR97zp+7T94kyb7lrOboJjgRoBDhqtfl/Jl7fiDo7TB59JfhrOboJjgRoBBR9Umk9Kl7+WcEKGQQoBDhDtDlt93Tnz3u4I14uglOBChEuALU8RnOK4u5rKCb4ESAQoR0vegmOBGgEOE4H+i38efC0/Vvp919mJNughMBChHO10ALbxh19PbRDN0EJwIUIghQxIcAhYhSvf4epX4bJoNfRwtHCQEKNQQoRJTqdTtMHLr4DNIM3QQnAhQiyvU6ceTnXmcPQAlQuBGgEFGu12Q8Hn9Kn8K/Gz/o5gjQGboJTgQoRGx6E2lLfnwbnzU/GopughMBChEbjwNt4/LlNIonD6e2b3h5uglOBChEBKzX5O3sHfzsZHhzz5slM90EJwIUIsLVa5qbaYBO/z8YjUbDxu/o001wIkAholiv2auf89PZ5TxfEb1JL/rfr2f/P8x+MPmz6Ynt6SY4EaAQES5AT+a5eZI/7jxp+BCUboITAQoRpQB9efD0r+y/ZU+9AjTN4enDzcX/M7fDZqcVpZvgRIBCRLB6LY6GKh4V1fQIKboJTgQoRAQP0MkbAhRbRoBCRLB6ZW++v87+cJI/hb9JeAqPLSBAIWJdvb4Oi9/M2dT5/O2n2+HinaMsUw8bTY5uggsBChHOel0cZdF3Pvtq+EYHHhVk7+bvZfF7vjiM6SOHMWErCFCIcNVr9thxcW477w/G32RX8PTd1dWfaZIef3o7TBo+ACVA4UaAQoSjXllypqk5jdHGz7qXr6is4VXRTXAiQCHCUa/z6Vs9WXTuT9/38T+h8uIsIoszi3IyEWwFAQoRjrMxvZm+Upk9fHzd/uR2Pz6NpgfmP/39Haezw5YQoBBReT7Q89k7PnypHPQQoBBRGaAns7ePCFDoIUAhoipA5y+BNv74+lbRTXAiQCHC+Rpo8nrxEmjjEyhtFd0EJwIUItzvwu+d/e/ZyZD/TOYfyNyK9a8HuL5SeWs3jV1CgEKEo16LE4Iezv60xQegBCi2ggCFCFe9ZgfAP76eBmjDrzFai7MxYSsIUIhw1mtyMfr9LP3/z//x7Gyrt/bj6nuTX6eb4ESAQoR0vegmOBGgECFdL7oJTgQoREjXi26CEwEKEe56fftjlPu91dtIk6tv4/H485XPldBNcCJAIaL6Xfi2X2ucuXxbuJ7mb0jRTXAiQCGi4nygWwnQu6Olozr3Gp7dnm6CEwEKEe5PIk1PJL/Q6MijgukZ6ZOD+QsBT6bfD9LsU010E5wIUIhwfxZ+G58+yo7CHxRPoXwxbPpolm6CEwEKEc6zMXl/kVzR+UpcZpHKt3KiPQIUIirPB9rWw/fCF/C98NgKAhQinE/htxGgrhzms/DYCgIUItxvIm3hDHYEKIIhQCHCfTq7LTwEnX83XQlP4bEVBChEVBxIPzi+anvNJytp2fj9fboJTgQoRDjfRNrKgfTZ8fiPvxR+cPcmafj+Pt0EJwIUIsIF6PSA/GQwejfOfJodSd/oKCYCFG4EKEQ4AvTlQdlT3xdEvy59JjQZvGo4Obqpt1xf8FLQXcQRoCgIWq/JaTFCB8dNz8hEN/XVhvgkQCEidL0ml+PT0Wh0PD7zOJ8d3dRXXSYkAYr6pOtFN/UVAYo4VNXrx3j8+fp+4nsmpu2gm/qKAEUc3PX6+mT27vvPF3tfnL9gg27qKwIUcXDW6+Pi8KVtnZnJE93UVwQo4uCqV3YA597/GaYBmn12qNGHL7eLbuorAhRxqPhKj1fpg8/sAHrXSens0E19RYAiDo56nUw/sT4L0Oz8H9s4Pb0fuqmvCFDEwXk+0Ox1z3mApg9Hu3sOTzf1FQGKOFSekX4eoFs6P70fuqmvCFDEgQCFIAIUceApPAQRoIiD+02kw4cAPedNJNgjQBEHR71u5sfQZwGa/pnDmGCuxwG6QdeVQZmjINmxn4P3WYBO/kw4kB4dIEAJ0Di4ClI6Jz0f5YS9HgfohuGuK4MyZ0Gyx6BznEwEHSBAq4a7rgzKKgpy9zY7H9Pg2ZntbJbQLn1FgFYNd10ZlEkXhHbpKwK0arjryqBMuiC0S18RoFXDXVcGZc6CXGVfRPy527PRZ2iXviJAq4a7rgzKVgtycfTwDtLTbl8CJUB7iwCtGu66MihbLsjtUVLU6ZvwBGhvEaBVw11XBmVLBfk6y82Dp6ODJ7PDQLv7HBIB2l8EaNVw15VBWbkg2Sc3k+eLFz/v3nIgPTpBgFYNd10ZlJUKkn0EqRSY2bd78FFOmCNAq4a7rgzKSgW5WXnAmSUoJxOBNQK0arjryqCsVJDZiezul37E6exgjQCtGu66MigrFmR+KuWSmy6fw9MufUWAVg13XRmUFQvy88VqgKbP4flKD1gjQKuGu64MypYCdCUs+U4kdIAArRruujIoI0AhiACtGu66MigjQCGIAK0a7royKCNAIYgArRruujIoI0AhiACtGu66MigjQCGIAK0a7royKFs+jOnduOwThzHBHgFaNdx1ZVC2FKAuBCisEaBVw11XBmUEKAQRoFXDXVcGZaWPcn4bu3zmo5wwRoBWDXddGZRJF4R26SsCtGq468qgTLogtEtfEaBVw11XBmXSBaFdYuZ8QT234bJdhtTaYQIUBdIFoV3itSE+CVDPYaPyoSbpgtAu8WqXBARo1bBR+VCTdEFol3gRoGGGjcqHmqQLQrvEiwANM2xUPtQkXRDaJV4EaJhho/KhJumC0C7xIkDDDBuVDzVJF4R2iRcBGmbYqHyoSbogtEu8CNAww0blQ03SBaFd4kWAhhk2Kh9qki4I7RIvAjTMsFH5UJN0QWiXeBGgYYaNyoeapAtCu8SLAA0zbFQ+1GRVkMk3j/OK0i7xIkDDDBuVDzVZFcTry+lol3gRoGGGjcqHmghQBEGAhhk2Kh9qCleQH1dFl2mAnqX//97kKmiXeBGgYYaNyoeaghVkG99QR7vEiwANM2xUPtREgCIIAjTMsFH5UFO4gnwdJslgtPDbMBn8mv7/9yZvxdMu8SJAwwwblQ81BSzI3Zsk2fsy/wtvIvUMARpm2Kh8qCloQf5OH3b+Y/ZHArRnCNAww0blQ01hC3J3lCSPpw9CCdCeIUDDDBuVDzUFLsjkzyQZvLonQHuHAA0zbFQ+1BS8ILfpg9Bn1wRo3xCgYYaNyoeawhdk8jF9EPqeAO0ZAjTMsFH5UJNFQbIDmn4dEqC9QoCGGTYqH2oyKUh2QFPDY+inaJd4EaBhho3Kh5qMCvL3kADtFwI0zLBR+XJu6RIAABmwSURBVFCTVUHu/mj2IaQp2iVeG5Ngg6Ap1GaYAEWBdEFol3gRoGGGu64ryqQLQrvESzgCCVBsjXRBaJd4CUcgAYqtMS3I+oNBXU/kDCeHrRKOQAIUW0OAIgjhCCRAsTVCAbqKdomXcAQSoNga24L84DuR+kI4AglQbI10QWiXeAlHIAGKrZEuCO0SL+EIJECxNdIFoV3iJRyBBCi2JnhBJlffxuPx56vGn+O8J0BjJhyBBCi2JmxBLt8WDkl6dtb04rRLvIQjkADF1oQsSPaNSCV7H5pdAe0SL+EIJECxNQELcjPMQvNg/sXwT7K/DF43ugbaJV7CEUiAYmvCFeTni+yrPAo/uGh8TlDaJV7CERh1gG7Qddl7J9yKn6/EZRaph02ugn6Il3AEEqDYmmArPnmTJMtP2G+S5HGTd+Pph3gJR2DUAbphuOuy906wFXd97p3PwveHdMy0GVaeGxvGHAGKIKRjps2w8tzYMOZCPoUfLB+1xFP4/pCOmTbDynNjw5gLt+InK2mZvSy63+Qq6Id4ScdMm2HlubFhzIVb8dthmqBfCj/Ivh1+5UHpWvRDvKRjps2w8tzYMOYCrvj59ND50btx5tPsSPpGRzERoBGTjpk2w8pzY8OYC7niX4dLB6kNXjW7AvohXtIx02ZYeW5sGHNBV3xyWozQwXHTMzLRD/GSjpk2w8pzY8OYC73ik8vx6Wg0Oh6feZzPjn6Il3TMtBlWnhsbxpz0itMP8ZKOmTbDynNjw5iTXnH6IV7SMdNmWHlubBhz0itOP8RLOmbaDCvPjQ1jTnrF6Yd4ScdMm2HlubFhzEmvOP0QL+mYaTOsPDc2jDnpFacf4iUdM22GlefGhjEnveL0Q7ykY6bNsPLc2DDmpFecfoiXdMy0GVaeGxvGnPSK0w/xko6ZNsPKc2PDmJNecfohXtIx02ZYeW5sGHPSK04/xEs6ZtoMK8+NDWNOesXph3hJx0ybYeW5sWHMSa84/RAv6ZhpM6w8NzaMOekVpx/iJR0zbYaV58aGMSe94vRDvKRjps2w8tzYMOakV5x+iJd0zLQZVp4bG8ac9IrTD/GSjpk2w8pzY8OYk15x+iFe0jHTZlh5bmwYc9IrTj/ESzpm2gwrz40NY056xemHeEnHTJth5bmxYcxJrzj9EC/pmGkzrDw3Now56RWnH+IlHTNthpXnxoYxJ73i9EO8pGOmzbDy3Ngw5qRXnH6Il3TMtBlWnhsbxpz0itMP8ZKOmTbDynNjw5iTXnH6IV7SMdNmWHlubBhz0itOP8RLOmbaDCvPjQ1jTnrF6Yd4ScdMm2HlubFhzEmvOP0QL+mYaTOsPDc2jDnpFacf4iUdM22GlefGhjEnveL0Q7ykY6bNsPLc2DDmpFecfoiXdMy0GVaeGxvGnPSK0w/xko6ZNsPKc2PDmJNecfohXtIx02ZYeW5sGHPSK04/xEs6ZtoMK8+NDWNOesXph3hJx0ybYeW5sWHMSa84/RAv6ZhpM6w8NzaMOekVpx/iJR0zbYaV58aGMSe94vRDvKRjps2w8tzYMOakV5x+iJd0zLQZVp4bG8ac9IrTD/GSjpk2w8pzY8OYk15x+iFe0jHTZlh5bmwYc9IrTj/ESzpm2gwrz40NY056xemHeEnHTJth5bmxYcxJrzj9EC/pmGkzrDw3Now56RWnH+IlHTNthpXnxoYxJ73i9EO8pGOmzbDy3Ngw5qRXnH6Il3TMtBlWnhsbxpz0itMP8ZKOmTbDynNjw5iTXnH6IV7SMdNmWHlubBhz0itOP8RLOmbaDCvPjQ1jTnrF6Yd4ScdMm2HlubFhzEmvOP0QL+mYaTOsPDc2jDnpFacf4iUdM22GlefGhjEXdMUnpy8Pfv3X64e//3yRPPqrweXph3hJx0ybYeW5sWHMhVzxv4dJZnC8iFACtD+kY6bNsPLc2DDmAq74ebLweJ6gBGh/SMdMm2HlubFhzIVb8dv08efe+6urj9n/Z7FJgPaHdMy0GVaeGxvGXLgVP1888rw7WiQoAdof0jHTZlh5bmwYc8FWfPImSV7nf5xmKQHaH9Ix02ZYeW5sGHPBVrwYllmC7t8ToH0iHTNthpXnxoYxZxKg2V+SQwK0T6Rjps2w8tzYMOZsAjR7R2nwgQDtEemYaTOsPDc2jDmL10AzN0ny6AsB2h/SMdNmWHlubBhzQd+F3y//9dG/E6C9IR0zbYaV58aGMRf2ONBn3/O/n0yPqSdAe0I6ZtoMK8+NDWMu8CeRinn5kQDtEemYaTOsPDc2jLmQK/51WM7L9O8EaF9Ix0ybYeW5sWHMhT0b08Xv16W/fxwSoLsjWa/LHAk4rDw3Now56RWnH4RtiE/pmGkzrDw3Now56RWnH4RJ50jAYeW5sWHMSa84/SBMOkcCDivPjQ1jTnrF6Qdh0jkScFh5bmwYc6Yrvv6TSK7X0Qwnh2akcyTgsPLc2DDmCFD4kc6RgMPKc2PDmBMK0FX0gzDpHAk4rDw3Now52xX/cfV98y/l6Adh0jkScFh5bmwYc9IrTj8Ik86RgMPKc2PDmJNecfpBmHSOBBxWnhsbxpz0itMPwqRzJOCw8tzYMOaCr/jk6tt4PP58db35V1fQD8KkcyTgsPLc2DDmwq745dvCIUnPzppenH4QJp0jAYeV58aGMRdyxbMvhC/Z+9DsCugHYdI5EnBYeW5sGHMBV/xmmIXmwWjmSfaXwevNFyugH4RJ50jAYeW5sWHMhVvx7KuMB+8LP7hoej5lAlSZdI4EHFaeGxvGXNAvlVuKy/m3w9dHPwiTzpGAw8pzY8OYs/pa46mbJHnc5N14+kGYdI4EHFaeGxvGXLAVd33unc/C7xDpHAk4rDw3Now5AhR+pHMk4LDy3Ngw5kI+hR8sH7XEU/gdIp0jAYeV58aGMRduxU9W0jJ7WXS/yVXQD8KkcyTgsPLc2DDmwq347TBN0C+FH9yl+bnyoHQt+kGYdI4EHFaeGxvGXMAVP58eOj96N858mh1J3+goJgJUmXSOBBxWnhsbxlzIFf86XPoo5+BVsyugH4RJ50jAYeW5sWHMBV3xyWkxQgfHTc/IRD8Ik86RgMPKc2PDmAu94pPL8eloNDoen3mcz45+ECadIwGHlefGhjEnveL0gzDpHAk4rDw3Now56RWnH4RJ50jAYeW5sWHMSa84/SBMOkcCDivPjQ1jTnrF6Qdh0jkScFh5bmwYc9IrTj8Ik86RgMPKc2PDmJNecfpBmHSOBBxWnhsbxpz0itMPwqRzJOCw8tzYMOakV5x+ECadIwGHlefGhjEnveL0gzDpHAk4rDw3Now56RWnHwJLWukyKLobVp4bG8ac9IrTD0G1i0/pHAk4rDw3Now56RWnH4KSTgLZYeW5sWHMSa84/RCUdBLIDivPjQ1jTnrF6YegpJNAdlh5bmwYc9IrTj8EJZ0EssPKc2PDmJNecfohKOkkkB1Wnhsbxpz0itMPQUkngeyw8tzYMOakV5x+CEo6CWSHlefGhjEnveL0Q1DSSSA7rDw3Now56RWnH4KSTgLZYeW5sWHMSa84/RCUdBLIDivPjQ1jTnrF6YegpJNAdlh5bmwYc9IrTj8EJZ0EssPKc2PDmJNecfohKOkkkB1WntvGDbPh9DAmbbdbpNeMigYlnQSyw8pz27BhNp5fy6jxdon0mlHRoKSTQHZYeW4bA7TNpeEivWZUNCjpJJAdVp4bAWpOes2oaFDSSSA7rDw3AtSc9JpR0aCkk0B2WHluBKg56TWjokFJJ4HssPLcCFBz0mtGRYOSTgLZYeW5tf0aK96kb0x6UShZUNJJIDusPDcC1Jz0olCyoKSTQHZYeW5dvj7QU9KLQsmCkt6sssPKcyNAzUkvCiULSnqzyg4rz40ANSe9KJQsKOnNKjusPDcC1Jz0olCyoKQ3q+yw8twIUHPSi0LJgpLerLLDynMjQM1JLwolC0p6s8oOK8+NADUnvSiULCjpzSo7rDw3AtSc9KJQsqCkN6vssPLcCFBz0otCyYKS3qyyw8pzI0DNSS8KJQtKerPKDivPjQA1J70olCwo6c0qO6w8NwLUnPSiULKgpDer7LDy3AhQc9KLQsmCkt6sssPKcyNAzUkvCiULSnqzyg4rz40ANSe9KJQsKOnNKjusPDcC1Jz0olCyoKQ3q+yw8twIUHPSi0LJgpLerLLDynMjQM1JLwolC0p6s8oOK8+NADUnvSiULCjpzSo7rDw3AtSc9KJQsrbafccYw2o3ToCqkV4UStZO2y9pZFjtxglQNcEXZXL1bTwef7669rgsJWtHejfGOqw8NwLUXNhFuXxbeLjz7KzpxSlZO9K7MdZh5bkRoOZCLsrd0dIzxr0Pza6AkrUjvRtjHVaeGwFqLuCi3Ayz0DwYzTzJ/jJ43egaKFk70rsx1mHluRGg5sItys8XaWC+L/zgIg3UR381uQpK1o70box1WHluBKi5cItyvhKXWaQeNrkKStaO9G6MdVh5bgSouWCLMnmTJMtP2G+S5HGTd+MpWTvSuzHWYeW5BR4OquvN4inYvNOHmyvP110/WyfaVRUhvRtjHVaeGwFqjgDdYdK7MdZh5bnFPNz1ZvEU8in8YPmoJZ7C25LeMLEOK88t5uGuN4uncPM+WUnL7GXR/SZXEe2qipDeMLEOK88t5uGuN4uncPO+HaYJ+qXwg7s0P1celK4V7aqKkN4wsQ4rzy3m4a43i6eA8z7PXhoejN6NM59mR9I3OoqJAG1JesPEOqw8t5iHu94snkLO++tw6Y22watmV9BgVeN9iy/gzKU3TKzDynOLebi7bdJK0FuenBYjdHDc9IxMtddlw+oKB2jQmUtvmFiHlecW83B326SV0Lc8uRyfjkaj4/GZx/nsGgRom+p0KejMpTdMrMPKc4t5uLtt0oputNwToASo4LDy3GIe7m6btKIbLfcEKAEqOKw8t5iHu9smrehGyz0BSoAKDivPLebh7rZJK7rRck+AEqCCw8pzi3m4u23Siuktr/8sfIs31za+SQdgh20noDwQoABit52A8iAUoAAQF9vo/nH13fT2ACAg3bdXAEAcAQoAnghQAPAUPEAnV9/G4/HnK4+PwgOAtLABevm2cKTBs7OgtwUAxkIG6N3R0sFae43ORw8A2gIG6M30ZKAHo5npCekHy98UDwDxChegP1+kgfm+8IOLNFA5jh7A7ggXoOcrcZlFarMvRQIAYSG/Fz5ZfsLe9HvhAUBZsAB1fe6dz8ID2CUEKAB4CvkUfrB81BJP4QHsknBvIp2spGX2suh+sNsDAGPhAvR2mCbol8IP7tL8XHlQCgDRCngg/fn00PnRu3Hm0+xIeo5iArA7Qn6U8+tw6aOcg1cBbw0AjAU9mcjktBihg2PeQAKwS0Kfzm5yOT4djUbH4zPSE8COieaEylv9Dj8APRIwl8Jd9TZ1XQAA8QqYTOGueps6/OLnTZiaD6bmRXhuPZ2a7r0u6Wl1WmJqPoSnpjy3nk5N916X9LQ6LTE1H8JTU55bT6eme69LelqdlpiaD+GpKc+tp1PTvdclPa1OS0zNh/DUlOfW06np3uuSnlanJabmQ3hqynPr6dR073VJT6vTElPzITw15bn1dGq697qkp9Vpian5EJ6a8tx6OjXde13S0+q0xNR8CE9NeW49nZruvS7paXVaYmo+hKemPLeeTk33Xpf0tDotMTUfwlNTnltPp6Z7r0t6Wp2WmJoP4akpz62nU9O91yU9rU5LTM2H8NSU59bTqene65KeVqclpuZDeGrKc+vp1HTvdUlPq9MSU/MhPDXlufV0arr3uqSn1WmJqfkQnpry3Ho6Nd17XdLT6rTE1HwIT015bj2dmu69LulpdVpiaj6Ep6Y8t55OTfdel/S0Oi0xNR/CU1OeW0+npnuvAUAcAQoAnghQAPBEgAKAJwIUADwRoADgiQAFAE8EKAB4IkABwBMBCgCeCFAA8ESAAoAnAhQAPBGgAOCJAAUATwQoAHgiQAHAEwEKAJ4IUADwRIACgCcCFAA8EaAA4IkABQBPBCgAeCJAAcATAQoAnghQAPAkHKCT04MkSX559sUxdvd2mCQD55CZny8e/bXyw8mb5MHrDiY145xa96tWeftdrtqaRel6vTQXLCfaZhmzzakboF+Hi/v6vHJs8I8OJjaXVsNRo58vBDrbPbXOV6369jtctTWL0vV6aS5YTrTNMnabUzZAb/L7muxXj3XXPSeJq0bFaXc1t81T62Rma26/u1WrN6luKim5YDnRNssYbk7VAM3+sdg7S/9weZT+W/ZhdezLbMj5HMLA9NmA48bPu3xKNVMxta5Xbd3td7ZqaybV9XppLlhOtM0ylptTNUBvHh53ZqtRfgiarsPj68XQofnUMhfTpymOGp101jULVVPretXW3X5nq7ZmUl2vl+aCPVBts3vjzakaoCf5Pxa3w3lJ5tLKLB6SLg8ZuUv/dU2eHTnKkc6tiwnlKqfW9aqtu/3OVm3NpLpeL80FW5BtM/PNqRqgBemTgtL9Lvy9UC5L6b+yg1fO16nTuS2/YGurcmpdr9q62+9s1dZMquv10lywBdk2M9+cEQboTeEp/UknrwWdD55fu9/oS+f2+u5l+k/g0/f208pUTq3rVVt3+52t2ppJdb1emgu2INtm5pszggC9WXoN9Kbw2ko3L6b/yPLcWaPzZPDb/G2+Z508x6qcWtertu72O1u1NZPqer00F2xBts3MN6d+gKYPQMvPBIp1uenqheqKGp0UDpTo7lUq19S6XrV1t9/Zqq2ZVNfrpblgJYptNme3OeUDNDuka+VNeNUaZe88Do6vsw9jJN3NTLKz19x+d6sWaYDSZpvYbU71AHUcEitco8Kj5fPuDoOT7Ow1t9/dqkUaoLTZJnabUzxAp/9qLL2VJ1yj8nB3nxER7Ox6t2+8apEGaAFt5mS3OZUC9OGjqg+Rebf6MaRuarQ6tU01yqapNLWuV63m7Vut2sOtRR6gxgtWotJmDnabUzpAs9MS7LmORjB/o88jQMWyvetVq3n7tpsu1nfhK37NmEqbOdhtTuUATQuQPF99t6yLQ812IkA7XbWat28eoFEeB1r+NbEA7fg40Kl+BuiSjxXvlXX/YYfFbW96lqDUPl2vWs3bt121WD+JVECbudhtTt0APXe8/DnV/cdtF9NwvQK0iPyVw1cNVRzEofpZ+O5WLdLPwtNmm9htTtkATR9kP6o4p7XACV/u3TVKe2b+s9XDVw1VfA5D9WxMHa5anGdjos02sducqgG67t+IxblCuzzl4JpjdV9dO89iaqjqVAqdrlr17Xe4amsWpev10lywpWnotdmM3eZUDdDzpGh6d/NMVTjpdalGD1O7HeZT6+yfX/fUOl+1ldtXWLXqSXW+XpoLVqDZZtVTC7JqogE6KXz902qA3v8t9rUr+dRujxLVqXW+asu3L7Fq1ZPqfL00Fywn2mYZu80pGqDFr39yBKjCF/9VtM/kIjth1i/H3zubWOXUOl+1pdvXWLXqSXW+XpoL9kC1ze4tN6dogAKAPgIUADwRoADgiQAFAE8EKAB4IkABwBMBCgCeCFAA8ESAAoAnAhQAPBGgAOCJAAUATwQoAHgiQAHAEwEKAJ4IUADwRIACgCcCFAA8EaAA4IkABQBPBCgAeCJAAcATAQoAnghQAPBEgAKAJwIUADwRoADgiQAFAE8EKAB4IkABwBMBCgCeCFAA8ESAAoAnAhQAPBGgAOCJAAUATwQoAHgiQAHAEwEKAJ4IUADwRIACgCcCFAA8EaAA4IkABQBPBCgAeCJAAcATAQoAnghQAPBEgAKAJwIUADwRoADgiQAFAE8EKAB4IkABwBMBithN3iSDDxt/6+69wVTQNwQoYlcnQCcfk0OTyaBfCFDErk6A3iQEKAIgQBE7AhSdIUAROwIUnSFAETsCFJ0hQKGsEI63w+TxdfXvfH2SJINnXxY//HF6kKQ/eDp97z2Nz6nXFlNGnxCgUFY3QP95MovIwTwjz5OF7DIEKAIhQKGsboA+WeTlo7+yH+X5OX3qToAiEAIUymoGaPrQ89X1/eTPWV7e/3yRJM+/p3+4PJo9BOU1UIRBgEJZ3QB9NHvxM33kuX8/jcv9hwtNH5MSoAiCAIWyugF6WPE76WNRAhThEKBQVv9deMfv/Pj2xzAhQBEQAQplvgE6uXg5LL6tRIAiCAIUyjwD9HaYvwtPgCIcAhTK/AI0exc+SX55+vu7/+I1UIREgEKZX4CeJ8ne7G153kRCUAQopJ08hON5UjdACz+44Sk8QiJAIe1kcUjn3QuPAM0uRIAiHAIU0rIPZT5PM/HrMKkdoFnqZk/hJ6fZhaZjN1UXBtogQCFt9n5Q5n+9qB2gN0nBdGz2tjyfhceWEaDQdjM/IunwZ/0Avf+4CM/jN7PYnH5enmfx2DYCFOJ+fEwj9On7+yYBen/xMjuO6fj64WPxk7fZawFWc0ZfEKAA4IkABQBPBCgAeCJAEZPS++ucZh5dI0AREwIUUghQxIQAhRQCFAA8EaAA4IkABQBPBCgAeCJAAcATAQoAnghQAPBEgAKAJwIUADwRoADgiQAFAE8EKAB4IkABwBMBCgCeCFAA8ESAAoAnAhQAPBGgAOCJAAUATwQoAHgiQAHAEwEKAJ4IUADwRIACgCcCFAA8EaAA4IkABQBPBCgAeCJAAcATAQoAnghQAPBEgAKAJwIUADwRoADgiQAFAE8EKAB4IkABwBMBCgCeCFAA8ESAAoAnAhQAPBGgAOCJAAUAT/8fpRjTC1Z2B2UAAAAASUVORK5CYII=" width="672" /></p>
+<pre class="r"><code># Computa a variância
+(sigma &lt;- t(u_hat) %*% u_hat / (N - k))</code></pre>
+<pre><code>##           [,1]
+## [1,] 0.1437451</code></pre>
+<pre class="r"><code># Computa o desvio-padrão
+(dp &lt;- sqrt(sigma))</code></pre>
+<pre><code>##           [,1]
+## [1,] 0.3791373</code></pre>
+<pre class="r"><code># Computa a variância dos coeficientes
+(var_cov &lt;- solve(t(X) %*% X) * as.numeric(sigma))</code></pre>
+<pre><code>##                const          educ         exper        exper2        tenure
+## const   2.015144e-02 -8.391442e-04 -1.259396e-03  4.053681e-05 -1.400612e-05
+## educ   -8.391442e-04  5.650348e-05 -8.720532e-07  6.672702e-07 -3.138122e-06
+## exper  -1.259396e-03 -8.720532e-07  2.390352e-04 -9.952987e-06  2.780852e-06
+## exper2  4.053681e-05  6.672702e-07 -9.952987e-06  4.454019e-07 -2.978516e-07
+## tenure -1.400612e-05 -3.138122e-06  2.780852e-06 -2.978516e-07  9.605291e-06</code></pre>
+<pre class="r"><code># Computa o desvio padrão dos coeficientes
+(ep_coef &lt;- sqrt(diag(var_cov)))</code></pre>
+<pre><code>##        const         educ        exper       exper2       tenure 
+## 0.1419557709 0.0075168794 0.0154607620 0.0006673844 0.0030992404</code></pre>
+<pre class="r"><code># Teste t para significancia dos betas
+(t_test &lt;- beta / ep_coef)</code></pre>
+<pre><code>##              [,1]
+## const  39.0479619
+## educ   10.1622750
+## exper   0.5150737
+## exper2  0.6725219
+## tenure  3.0856618</code></pre>
+</div>
+<div id="viés-de-estimadores-dos-betas" class="section level2" number="2.4">
+<h2><span class="header-section-number">2.4</span> Viés de Estimadores
+dos <span class="math inline">\(\beta\)</span>’s</h2>
+<p><br></p>
+<p>Pode-se demonstrar que o <span class="math inline">\(\beta\)</span>
+estimado por MQO não é viesado da seguinte forma:</p>
+<p><span class="math display">\[
+\hat \beta=(X&#39;X)^{-1}X&#39;Y
+\]</span></p>
+<p><span class="math display">\[
+\hat \beta=(X&#39;X)^{-1}X&#39;(X\beta + u)
+\]</span></p>
+<p><span class="math display">\[
+\hat \beta=(X&#39;X)^{-1}X&#39;X\beta + (X&#39;X)^{-1}X&#39;u
+\]</span></p>
+<p><span class="math display">\[
+\hat \beta=I\beta + (X&#39;X)^{-1}X&#39;u
+\]</span></p>
+<p><span class="math display">\[
+E(\hat \beta|X)=\beta +E[(X&#39;X)^{-1}X&#39;u|X]
+\]</span></p>
+<p><span class="math display">\[
+E(\hat \beta|X)=\beta
+\]</span></p>
+<pre class="r"><code>t(X) %*% u_hat</code></pre>
+<pre><code>##                 [,1]
+## const  -6.377388e-11
+## educ   -6.765211e-10
+## exper  -7.966054e-10
+## exper2 -1.130498e-08
+## tenure -4.340164e-10</code></pre>
+<p><br></p>
+<p>Por definição, o <span class="math inline">\(R^2\)</span> por via
+matricial é calculado por:</p>
 <p><span class="math display">\[
 \mathbf{R^2=\frac{\hat \beta&#39; X&#39;y-n\bar{Y}^2}{y&#39;y-n\bar
 Y^2}}
 \tag{9}
-\]</span> Por definição, o <span class="math inline">\(F\)</span> por
-via matricial é:</p>
+\]</span></p>
+<pre class="r"><code>l &lt;- rep(1, N)
+y_til &lt;- y - l %*% solve(t(l) %*% l) %*% t(l) %*% y
+(r2 &lt;- 1 - t(u_hat) %*% u_hat / t(y_til) %*% y_til)</code></pre>
+<pre><code>##           [,1]
+## [1,] 0.1591249</code></pre>
+<p>Por definição, o <span class="math inline">\(F\)</span> por via
+matricial é:</p>
 <p><span class="math display">\[
 \mathbf{F=\frac{(\hat \beta&#39;
 X&#39;y-n\bar{Y}^2)/(k-1)}{(y&#39;y-\hat \beta&#39; X&#39;y)/(n-k)}}
 \tag{10}
-\]</span> <br></p>
+\]</span></p>
+<p>Contudo, pode-se testar uma hipótese conjunta como <span class="math inline">\(\beta_2=\beta_3=0\)</span> usando o teste F. Para
+fazer isto, estima-se um modelo restrito e compara-se a soma dos
+quadrados dos resíduso deste modelo contra o original. Definindo a soma
+do quadrado dos resíduos do modelo restrito como SSRR e do irrestrito
+como SSRI tais que:</p>
+<p><span class="math display">\[
+SSR_R= \sum\limits_{i=1}^{N}(y_i-x_i&#39;\hat \beta_{res})
+\]</span> <span class="math display">\[
+SSR_I= \sum\limits_{i=1}^{N}(y_i-x_i&#39;\hat \beta_{irres})
+\]</span> Monta-se a estatística F segundo a expressão abaixo:</p>
+<p><span class="math display">\[
+\frac{\frac{SSR_R-SSR_I}{q}}{\frac{SSR_I}{N-k-1}}
+\]</span> O Modelo irrestrito é o original estimado. O modelo restrito
+faz <span class="math inline">\(\beta_2=\beta_3=0\)</span>.</p>
+<pre class="r"><code># Monta a matriz de observações da estimação restrita
+X_res &lt;- cbind(const, sal$educ, sal$tenure)
+X_res &lt;- as.matrix(X_res)
+colnames(X_res) &lt;- c(&quot;const&quot;, &quot;educ&quot;, &quot;tenure&quot;)
+# Estima os betas da regressão restrita
+beta_res &lt;- solve(t(X_res) %*% X_res) %*% t(X_res) %*% y
+# Computa o resíduo da regressão restrita
+u_res &lt;- y - X_res %*% beta_res
+# Computa a soma do quadrado dos resíduos (reg. restrita)
+(ssr_res &lt;- sum(u_res^2))</code></pre>
+<pre><code>## [1] 97.44856</code></pre>
+<pre class="r"><code># Computa a soma do quadrado dos resíduos (reg. irrestrita)
+(ssr_irres &lt;- sum(u_hat^2))</code></pre>
+<pre><code>## [1] 94.58429</code></pre>
+<pre class="r"><code># Computa o teste F
+(teste_f &lt;- ((ssr_res - ssr_irres) / 2) / (ssr_irres / (N - k - 1)) )</code></pre>
+<pre><code>## [1] 9.947883</code></pre>
+<pre class="r"><code># Computa o valor crítico (95%) do teste F
+(f95 &lt;- qf(0.95, 2, N - k - 1))</code></pre>
+<pre><code>## [1] 3.009434</code></pre>
+<pre class="r"><code># Computa o p-valor associado ao teste F acima
+(pvalor &lt;- 1 - pf(teste_f, 2, N - k - 1))</code></pre>
+<pre><code>## [1] 5.543874e-05</code></pre>
+<p><br></p>
 </div>
-<div id="demonstração-no-r---modelos-de-regressão-múltipla" class="section level2" number="2.4">
-<h2><span class="header-section-number">2.4</span> Demonstração no R -
+<div id="demonstração-no-r---modelos-de-regressão-múltipla" class="section level2" number="2.5">
+<h2><span class="header-section-number">2.5</span> Demonstração no R -
 Modelos de Regressão Múltipla</h2>
 <p><br></p>
-<pre class="r"><code>#Direcionado o R para o Diretorio a ser trabalhado
-setwd(&#39;C:/Users/Joao Ricardo Lima/Dropbox/tempecon/facape&#39;)
-
-#Limpa o Ambiente Global
-rm(list=ls())
-
-options(digits=4)
-
-#Dados do Woldridge
+<pre class="r"><code># Dados do Woldridge
 library(wooldridge)
 library(tseries)</code></pre>
 <pre class="r"><code># Puxando os dados do pacote Wooldridge
 data(&quot;wage1&quot;)
 
-#Estimando a 1 Regressão Multipla
+#Estimando a 1 Regressão Multipla Modelo Irrestrito
 
-reg1 &lt;- lm(wage ~ educ + exper + tenure, data=wage1) #tenure = anos no emprego atual
+reg1 &lt;- lm(log(wage) ~ educ + exper + I(exper^2) + tenure, data=sal)
 summary(reg1)</code></pre>
 <pre><code>## 
 ## Call:
-## lm(formula = wage ~ educ + exper + tenure, data = wage1)
+## lm(formula = log(wage) ~ educ + exper + I(exper^2) + tenure, 
+##     data = sal)
 ## 
 ## Residuals:
-##    Min     1Q Median     3Q    Max 
-## -7.607 -1.775 -0.628  1.197 14.654 
+##     Min      1Q  Median      3Q     Max 
+## -1.8515 -0.2351  0.0170  0.2491  1.3157 
 ## 
 ## Coefficients:
-##             Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)  -2.8727     0.7290   -3.94  9.2e-05 ***
-## educ          0.5990     0.0513   11.68  &lt; 2e-16 ***
-## exper         0.0223     0.0121    1.85    0.064 .  
-## tenure        0.1693     0.0216    7.82  2.9e-14 ***
+##              Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 5.5430834  0.1419558  39.048  &lt; 2e-16 ***
+## educ        0.0763886  0.0075169  10.162  &lt; 2e-16 ***
+## exper       0.0079634  0.0154608   0.515  0.60667    
+## I(exper^2)  0.0004488  0.0006674   0.673  0.50149    
+## tenure      0.0095632  0.0030992   3.086  0.00212 ** 
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
-## Residual standard error: 3.08 on 522 degrees of freedom
-## Multiple R-squared:  0.306,  Adjusted R-squared:  0.302 
-## F-statistic: 76.9 on 3 and 522 DF,  p-value: &lt;2e-16</code></pre>
+## Residual standard error: 0.3791 on 658 degrees of freedom
+## Multiple R-squared:  0.1591, Adjusted R-squared:  0.154 
+## F-statistic: 31.13 on 4 and 658 DF,  p-value: &lt; 2.2e-16</code></pre>
 <pre class="r"><code>#Testes de Normalidade
 jarque.bera.test(reg1$residuals)</code></pre>
 <pre><code>## 
 ##  Jarque Bera Test
 ## 
 ## data:  reg1$residuals
-## X-squared = 651, df = 2, p-value &lt;2e-16</code></pre>
+## X-squared = 25.853, df = 2, p-value = 2.433e-06</code></pre>
+<pre class="r"><code>#Estimando a 1 Regressão Multipla Modelo Restrito
+
+regrest1 &lt;- lm(log(wage) ~ educ  + tenure, data=sal)
+summary(regrest1)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = log(wage) ~ educ + tenure, data = sal)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1.90839 -0.24389  0.02665  0.25641  1.30413 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 5.884887   0.095844  61.401  &lt; 2e-16 ***
+## educ        0.060522   0.006696   9.039  &lt; 2e-16 ***
+## tenure      0.014057   0.002955   4.757 2.42e-06 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.3843 on 660 degrees of freedom
+## Multiple R-squared:  0.1337, Adjusted R-squared:  0.131 
+## F-statistic: 50.91 on 2 and 660 DF,  p-value: &lt; 2.2e-16</code></pre>
 <pre class="r"><code>#Regressão com variáveis em log
 reg2&lt;-lm(log(wage) ~ educ + log(exper) + tenure, data=wage1)
 summary(reg2)</code></pre>
@@ -2165,60 +2395,68 @@ summary(reg2)</code></pre>
 ## lm(formula = log(wage) ~ educ + log(exper) + tenure, data = wage1)
 ## 
 ## Residuals:
-##     Min      1Q  Median      3Q     Max 
-## -1.9875 -0.2791 -0.0326  0.2772  1.3698 
+##      Min       1Q   Median       3Q      Max 
+## -1.98749 -0.27914 -0.03257  0.27723  1.36975 
 ## 
 ## Coefficients:
 ##             Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)  0.08419    0.10744    0.78     0.43    
-## educ         0.09415    0.00696   13.53  &lt; 2e-16 ***
-## log(exper)   0.10932    0.02037    5.37  1.2e-07 ***
-## tenure       0.01852    0.00294    6.29  6.6e-10 ***
+## (Intercept) 0.084195   0.107442   0.784    0.434    
+## educ        0.094150   0.006959  13.530  &lt; 2e-16 ***
+## log(exper)  0.109320   0.020366   5.368 1.20e-07 ***
+## tenure      0.018520   0.002943   6.292 6.65e-10 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
-## Residual standard error: 0.432 on 522 degrees of freedom
-## Multiple R-squared:  0.345,  Adjusted R-squared:  0.341 
-## F-statistic: 91.5 on 3 and 522 DF,  p-value: &lt;2e-16</code></pre>
+## Residual standard error: 0.4315 on 522 degrees of freedom
+## Multiple R-squared:  0.3447, Adjusted R-squared:  0.3409 
+## F-statistic: 91.52 on 3 and 522 DF,  p-value: &lt; 2.2e-16</code></pre>
 <pre class="r"><code>jarque.bera.test(reg2$residuals)</code></pre>
 <pre><code>## 
 ##  Jarque Bera Test
 ## 
 ## data:  reg2$residuals
-## X-squared = 21, df = 2, p-value = 2e-05</code></pre>
+## X-squared = 21.263, df = 2, p-value = 2.414e-05</code></pre>
 <pre class="r"><code>data(&quot;econmath&quot;)
 summary(econmath)</code></pre>
-<pre><code>##       age            work           study          econhs         colgpa     
-##  Min.   :18.0   Min.   : 0.00   Min.   : 0.0   Min.   :0.00   Min.   :0.875  
-##  1st Qu.:19.0   1st Qu.: 0.00   1st Qu.: 8.5   1st Qu.:0.00   1st Qu.:2.446  
-##  Median :19.0   Median : 8.00   Median :12.0   Median :0.00   Median :2.813  
-##  Mean   :19.4   Mean   : 8.63   Mean   :13.9   Mean   :0.37   Mean   :2.815  
-##  3rd Qu.:20.0   3rd Qu.:15.00   3rd Qu.:18.0   3rd Qu.:1.00   3rd Qu.:3.207  
-##  Max.   :29.0   Max.   :37.50   Max.   :50.0   Max.   :1.00   Max.   :4.000  
-##                                                                              
-##      hsgpa          acteng         actmth          act          mathscr     
-##  Min.   :2.35   Min.   :12.0   Min.   :12.0   Min.   :13.0   Min.   : 0.00  
-##  1st Qu.:3.11   1st Qu.:20.0   1st Qu.:20.0   1st Qu.:21.0   1st Qu.: 7.00  
-##  Median :3.32   Median :23.0   Median :23.0   Median :23.0   Median : 8.00  
-##  Mean   :3.34   Mean   :22.6   Mean   :23.2   Mean   :23.1   Mean   : 7.88  
-##  3rd Qu.:3.59   3rd Qu.:25.0   3rd Qu.:26.0   3rd Qu.:25.0   3rd Qu.: 9.00  
-##  Max.   :4.26   Max.   :34.0   Max.   :36.0   Max.   :33.0   Max.   :10.00  
-##                 NA&#39;s   :42     NA&#39;s   :42     NA&#39;s   :42                    
-##       male        calculus         attexc         attgood         fathcoll    
-##  Min.   :0.0   Min.   :0.000   Min.   :0.000   Min.   :0.000   Min.   :0.000  
-##  1st Qu.:0.0   1st Qu.:0.000   1st Qu.:0.000   1st Qu.:0.000   1st Qu.:0.000  
-##  Median :0.5   Median :1.000   Median :0.000   Median :1.000   Median :1.000  
-##  Mean   :0.5   Mean   :0.676   Mean   :0.297   Mean   :0.586   Mean   :0.524  
-##  3rd Qu.:1.0   3rd Qu.:1.000   3rd Qu.:1.000   3rd Qu.:1.000   3rd Qu.:1.000  
-##  Max.   :1.0   Max.   :1.000   Max.   :1.000   Max.   :1.000   Max.   :1.000  
-##                                                                               
-##     mothcoll         score     
-##  Min.   :0.000   Min.   :19.5  
-##  1st Qu.:0.000   1st Qu.:64.1  
-##  Median :1.000   Median :74.2  
-##  Mean   :0.628   Mean   :72.6  
-##  3rd Qu.:1.000   3rd Qu.:82.8  
-##  Max.   :1.000   Max.   :98.4  
+<pre><code>##       age             work            study           econhs      
+##  Min.   :18.00   Min.   : 0.000   Min.   : 0.00   Min.   :0.0000  
+##  1st Qu.:19.00   1st Qu.: 0.000   1st Qu.: 8.50   1st Qu.:0.0000  
+##  Median :19.00   Median : 8.000   Median :12.00   Median :0.0000  
+##  Mean   :19.41   Mean   : 8.626   Mean   :13.92   Mean   :0.3703  
+##  3rd Qu.:20.00   3rd Qu.:15.000   3rd Qu.:18.00   3rd Qu.:1.0000  
+##  Max.   :29.00   Max.   :37.500   Max.   :50.00   Max.   :1.0000  
+##                                                                   
+##      colgpa          hsgpa           acteng          actmth     
+##  Min.   :0.875   Min.   :2.355   Min.   :12.00   Min.   :12.00  
+##  1st Qu.:2.446   1st Qu.:3.110   1st Qu.:20.00   1st Qu.:20.00  
+##  Median :2.813   Median :3.321   Median :23.00   Median :23.00  
+##  Mean   :2.815   Mean   :3.342   Mean   :22.59   Mean   :23.21  
+##  3rd Qu.:3.207   3rd Qu.:3.589   3rd Qu.:25.00   3rd Qu.:26.00  
+##  Max.   :4.000   Max.   :4.260   Max.   :34.00   Max.   :36.00  
+##                                  NA&#39;s   :42      NA&#39;s   :42     
+##       act           mathscr            male        calculus     
+##  Min.   :13.00   Min.   : 0.000   Min.   :0.0   Min.   :0.0000  
+##  1st Qu.:21.00   1st Qu.: 7.000   1st Qu.:0.0   1st Qu.:0.0000  
+##  Median :23.00   Median : 8.000   Median :0.5   Median :1.0000  
+##  Mean   :23.12   Mean   : 7.875   Mean   :0.5   Mean   :0.6764  
+##  3rd Qu.:25.00   3rd Qu.: 9.000   3rd Qu.:1.0   3rd Qu.:1.0000  
+##  Max.   :33.00   Max.   :10.000   Max.   :1.0   Max.   :1.0000  
+##  NA&#39;s   :42                                                     
+##      attexc          attgood          fathcoll         mothcoll     
+##  Min.   :0.0000   Min.   :0.0000   Min.   :0.0000   Min.   :0.0000  
+##  1st Qu.:0.0000   1st Qu.:0.0000   1st Qu.:0.0000   1st Qu.:0.0000  
+##  Median :0.0000   Median :1.0000   Median :1.0000   Median :1.0000  
+##  Mean   :0.2967   Mean   :0.5864   Mean   :0.5245   Mean   :0.6285  
+##  3rd Qu.:1.0000   3rd Qu.:1.0000   3rd Qu.:1.0000   3rd Qu.:1.0000  
+##  Max.   :1.0000   Max.   :1.0000   Max.   :1.0000   Max.   :1.0000  
+##                                                                     
+##      score      
+##  Min.   :19.53  
+##  1st Qu.:64.06  
+##  Median :74.22  
+##  Mean   :72.60  
+##  3rd Qu.:82.79  
+##  Max.   :98.44  
 ## </code></pre>
 <pre class="r"><code>#Estimação do modelo 
 reg3&lt;-lm(score ~ study + age + actmth, data=econmath)
@@ -2228,29 +2466,29 @@ summary(reg3)</code></pre>
 ## lm(formula = score ~ study + age + actmth, data = econmath)
 ## 
 ## Residuals:
-##    Min     1Q Median     3Q    Max 
-## -45.03  -7.60   1.66   8.90  27.89 
+##     Min      1Q  Median      3Q     Max 
+## -45.032  -7.602   1.660   8.904  27.893 
 ## 
 ## Coefficients:
 ##             Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)  56.3837     9.2195    6.12  1.5e-09 ***
-## study         0.0711     0.0547    1.30    0.194    
-## age          -0.9466     0.4515   -2.10    0.036 *  
-## actmth        1.4484     0.1133   12.78  &lt; 2e-16 ***
+## (Intercept) 56.38368    9.21953   6.116 1.49e-09 ***
+## study        0.07111    0.05472   1.299   0.1942    
+## age         -0.94664    0.45149  -2.097   0.0363 *  
+## actmth       1.44843    0.11330  12.784  &lt; 2e-16 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
-## Residual standard error: 12.1 on 810 degrees of freedom
+## Residual standard error: 12.13 on 810 degrees of freedom
 ##   (42 observations deleted due to missingness)
-## Multiple R-squared:  0.172,  Adjusted R-squared:  0.169 
-## F-statistic: 56.3 on 3 and 810 DF,  p-value: &lt;2e-16</code></pre>
+## Multiple R-squared:  0.1725, Adjusted R-squared:  0.1694 
+## F-statistic: 56.27 on 3 and 810 DF,  p-value: &lt; 2.2e-16</code></pre>
 <pre class="r"><code>#Teste de Normalidade
 shapiro.test(reg3$residuals)</code></pre>
 <pre><code>## 
 ##  Shapiro-Wilk normality test
 ## 
 ## data:  reg3$residuals
-## W = 0.98, p-value = 2e-09</code></pre>
+## W = 0.97894, p-value = 1.919e-09</code></pre>
 <pre class="r"><code>#Estimação do modelo com variáveis transformadas
 reg4&lt;-lm(score~study+log(age)+log(actmth), data=econmath)
 summary(reg4)</code></pre>
@@ -2259,29 +2497,29 @@ summary(reg4)</code></pre>
 ## lm(formula = score ~ study + log(age) + log(actmth), data = econmath)
 ## 
 ## Residuals:
-##    Min     1Q Median     3Q    Max 
-## -44.88  -7.70   1.57   8.80  27.72 
+##     Min      1Q  Median      3Q     Max 
+## -44.877  -7.698   1.570   8.796  27.725 
 ## 
 ## Coefficients:
-##             Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)  20.7059    28.8798    0.72     0.47    
-## study         0.0767     0.0546    1.40     0.16    
-## log(age)    -18.2317     9.2809   -1.96     0.05 *  
-## log(actmth)  33.5010     2.5824   12.97   &lt;2e-16 ***
+##              Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  20.70591   28.87977   0.717   0.4736    
+## study         0.07665    0.05462   1.403   0.1609    
+## log(age)    -18.23167    9.28094  -1.964   0.0498 *  
+## log(actmth)  33.50102    2.58237  12.973   &lt;2e-16 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
 ## Residual standard error: 12.1 on 810 degrees of freedom
 ##   (42 observations deleted due to missingness)
-## Multiple R-squared:  0.176,  Adjusted R-squared:  0.173 
-## F-statistic: 57.9 on 3 and 810 DF,  p-value: &lt;2e-16</code></pre>
+## Multiple R-squared:  0.1765, Adjusted R-squared:  0.1734 
+## F-statistic: 57.87 on 3 and 810 DF,  p-value: &lt; 2.2e-16</code></pre>
 <pre class="r"><code>#Teste de Normalidade
 shapiro.test(reg4$residuals)</code></pre>
 <pre><code>## 
 ##  Shapiro-Wilk normality test
 ## 
 ## data:  reg4$residuals
-## W = 0.98, p-value = 3e-09</code></pre>
+## W = 0.97933, p-value = 2.536e-09</code></pre>
 <pre class="r"><code>data(&quot;crime2&quot;)
 
 #Estimação do modelo 
@@ -2296,18 +2534,18 @@ summary(reg5)</code></pre>
 ## -27745  -6110  -1200   4139  60939 
 ## 
 ## Coefficients:
-##              Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept) -3.52e+03   1.06e+04   -0.33     0.74    
-## pop          6.43e-02   1.08e-02    5.96  5.2e-08 ***
-## unem        -6.38e+01   5.52e+02   -0.12     0.91    
-## officers     1.52e+01   3.60e+00    4.22  6.1e-05 ***
-## pcinc        4.78e-01   8.21e-01    0.58     0.56    
+##               Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) -3.523e+03  1.058e+04  -0.333    0.740    
+## pop          6.432e-02  1.079e-02   5.961 5.23e-08 ***
+## unem        -6.381e+01  5.519e+02  -0.116    0.908    
+## officers     1.516e+01  3.596e+00   4.216 6.06e-05 ***
+## pcinc        4.779e-01  8.211e-01   0.582    0.562    
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
 ## Residual standard error: 12600 on 87 degrees of freedom
-## Multiple R-squared:  0.828,  Adjusted R-squared:  0.82 
-## F-statistic:  105 on 4 and 87 DF,  p-value: &lt;2e-16</code></pre>
+## Multiple R-squared:  0.828,  Adjusted R-squared:  0.8201 
+## F-statistic: 104.7 on 4 and 87 DF,  p-value: &lt; 2.2e-16</code></pre>
 <pre class="r"><code>#Verificação dos Resíduos
 qqnorm(reg5$residuals)
 qqline(reg5$residuals)</code></pre>
@@ -2318,7 +2556,7 @@ shapiro.test(reg4$residuals)</code></pre>
 ##  Shapiro-Wilk normality test
 ## 
 ## data:  reg4$residuals
-## W = 0.98, p-value = 3e-09</code></pre>
+## W = 0.97933, p-value = 2.536e-09</code></pre>
 <pre class="r"><code>#Estimação do modelo com variáveis transformadas
 reg6&lt;-lm(log(crimes)~log(pop)+log(unem)+log(officers)+log(pcinc), data=crime2)
 summary(reg6)</code></pre>
@@ -2328,22 +2566,22 @@ summary(reg6)</code></pre>
 ##     log(pcinc), data = crime2)
 ## 
 ## Residuals:
-##     Min      1Q  Median      3Q     Max 
-## -0.4604 -0.1637 -0.0074  0.1657  0.6218 
+##      Min       1Q   Median       3Q      Max 
+## -0.46042 -0.16369 -0.00741  0.16572  0.62182 
 ## 
 ## Coefficients:
 ##               Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)     1.2562     1.6184    0.78     0.44    
-## log(pop)        0.5271     0.1193    4.42  2.9e-05 ***
-## log(unem)      -0.0867     0.1012   -0.86     0.39    
-## log(officers)   0.4378     0.1053    4.16  7.5e-05 ***
-## log(pcinc)     -0.0318     0.1607   -0.20     0.84    
+## (Intercept)    1.25623    1.61835   0.776    0.440    
+## log(pop)       0.52707    0.11930   4.418 2.86e-05 ***
+## log(unem)     -0.08666    0.10124  -0.856    0.394    
+## log(officers)  0.43781    0.10527   4.159 7.47e-05 ***
+## log(pcinc)    -0.03178    0.16067  -0.198    0.844    
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
-## Residual standard error: 0.263 on 87 degrees of freedom
-## Multiple R-squared:  0.88,   Adjusted R-squared:  0.875 
-## F-statistic:  160 on 4 and 87 DF,  p-value: &lt;2e-16</code></pre>
+## Residual standard error: 0.2628 on 87 degrees of freedom
+## Multiple R-squared:  0.8801, Adjusted R-squared:  0.8745 
+## F-statistic: 159.6 on 4 and 87 DF,  p-value: &lt; 2.2e-16</code></pre>
 <pre class="r"><code>#Verificação dos Resíduos
 qqnorm(reg6$residuals)
 qqline(reg6$residuals)</code></pre>
@@ -2354,7 +2592,7 @@ shapiro.test(reg6$residuals)</code></pre>
 ##  Shapiro-Wilk normality test
 ## 
 ## data:  reg6$residuals
-## W = 0.98, p-value = 0.2</code></pre>
+## W = 0.98173, p-value = 0.2253</code></pre>
 </div>
 </div>
 

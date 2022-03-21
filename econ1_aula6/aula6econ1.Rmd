@@ -364,6 +364,27 @@ $$
 
 <br>
 
+## Menor e Cofator
+
+<br>
+
+Se a i-ésima linha e a j-ésima coluna de uma matriz A de origem N x N são excluídas, o determinante da submatriz resultante é chamado de o **menor** do elemento $a_{ij}$ (o elemento na interseção da i-ésima linha e a j-ésima coluna) e é denotado por $|M_{ij}|$.
+
+O cofator do elemento $a_{ij}$ de uma matriz A de origem N x N, denotado por $c_{ij}$, é definido como
+
+$$
+c_{ij}=(-1)^{i+j}|M_{ij}|
+$$
+
+um cofator é um menor sinalizado, com sinal positivo se i + j for par e negativo
+se i + j for ímpar.
+
+Substituindo os elementos $a_{ij}$ de uma matriz A pelos seus cofatores, se obtém uma matriz conhecida como **matriz de cofator** de A, denotada por (cof A).
+
+A **matriz adjunta**, escrita como (adj A), é a transposta da matriz de cofator; $(adj$ $A) = (cof$ $A)'$.
+
+<br>
+
 ## Matrizes Inversas
 
 <br>
@@ -379,6 +400,19 @@ $$
 $$
 (\mathbf{A'})^{-1}=(\mathbf{A}^{-1})'; \quad (\mathbf{A}^{-1})^{-1}=\mathbf{A}
 $$
+Se A é quadrada e não singular ($|A| \neq 0$), a sua inversa $A^-1$ pode ser encontrada da seguinte forma:
+
+$$
+\mathbf{A}^{-1}=\frac{1}{\mathbf{|A|}}(adj \quad \mathbf{A})
+$$
+
+Os passos envolvidos no cálculo são os seguintes:
+
+1. Descubra o determinante de A. Se não for zero, execute o passo 2.
+2. Substitua cada elemento ai j de A por seu cofator para obter a matriz de cofator.
+3. Transponha a matriz de cofator para obter a matriz adjunta.
+4. Divida cada elemento da matriz adjunta por |A|.
+
 
 **Matrizes singulares** são matrizes que não possuem inversa.
 
@@ -523,35 +557,65 @@ $$
 
 <br>
 
-## Viés de Estimadores dos $\beta$'s
+## Demonstração no R
 
-<br>
+``` {r aula6_, warning=FALSE, message=FALSE}
+library(wooldridge)
+# Carrega a base 'wage2'
+data(wage2)
+# Remove os valores ausentes (NAs)
+sal <- na.omit(wage2)
 
-Pode-se demonstrar que o $\beta$ estimado por MQO não é viesado da seguinte forma: 
+# Dimensão da base (# linhas  # colunas)
+dim(sal)
 
-$$
-\hat \beta=(X'X)^{-1}X'Y
-$$
+# Descrição da base
+str(sal)
+```
 
-$$
-\hat \beta=(X'X)^{-1}X'(X\beta + u)
-$$
-
-$$
-\hat \beta=(X'X)^{-1}X'X\beta + (X'X)^{-1}X'u
-$$
-
-$$
-\hat \beta=I\beta + (X'X)^{-1}X'u
-$$
+O Modelo proposto para ser estimado é:
 
 $$
-E(\hat \beta|X)=\beta +E[(X'X)^{-1}X'u|X]
+log(wage)= \beta_0 +\beta_1 educ + \beta_2 exper + \beta_3exper^2+ \beta_4 tenure + u
 $$
+onde:
 
-$$
-E(\hat \beta|X)=\beta
-$$
+lwage = o logaritmo natural do salário
+educ = anos de educação
+exper = anos de experiência (trabalhando)
+tenure = anos trabalhando com o empregador atual
+
+``` {r aula6_0, warning=FALSE, message=FALSE}
+# Define alguns valores úteis: 
+## N = número de observações
+## k = número de betas estimados
+## const = vetor com 1's (uns)
+
+N <- 663
+k <- 5
+const <- rep(1, 663)
+
+# Monta a matriz de observações da regressão
+X <- cbind(const, sal$educ, sal$exper, sal$exper^2, sal$tenure)
+X <- as.matrix(X)
+
+# Define o nome das colunas da matriz de observações
+colnames(X) <- c("const", "educ", "exper", "exper2", "tenure")
+
+# Função para verificar as primeiras linhas da matriz X
+head(X)
+
+# Função para verificar as últimas linhas da matriz X
+tail(X)
+
+# Define o vetor y (log do salário)
+y <- sal$lwage
+
+# O operador de multiplicação matricial é ``%*%``. 
+
+# Computa a estimativa para os betas
+(beta <- solve(t(X) %*% X) %*% t(X) %*% y)
+```
 
 <br>
 
@@ -600,50 +664,159 @@ $$
 \mathbf{\hat \sigma^2}=\frac{SQR}{n-k}=\mathbf{\frac{y'y-\hat \beta'X'y}{n-k}}
 \tag{8}
 $$
+
+``` {r aula6_1}
+# Computa o resíduo da regressão
+u_hat <- y - X %*% beta
+
+# Histograma dos resíduos
+hist(u_hat, breaks = 30, freq = FALSE, main = "Histograma dos resíduos")
+
+# Computa a variância
+(sigma <- t(u_hat) %*% u_hat / (N - k))
+
+# Computa o desvio-padrão
+(dp <- sqrt(sigma))
+
+# Computa a variância dos coeficientes
+(var_cov <- solve(t(X) %*% X) * as.numeric(sigma))
+
+# Computa o desvio padrão dos coeficientes
+(ep_coef <- sqrt(diag(var_cov)))
+
+# Teste t para significancia dos betas
+(t_test <- beta / ep_coef)
+```
+
+## Viés de Estimadores dos $\beta$'s
+
+<br>
+
+Pode-se demonstrar que o $\beta$ estimado por MQO não é viesado da seguinte forma: 
+
+$$
+\hat \beta=(X'X)^{-1}X'Y
+$$
+
+$$
+\hat \beta=(X'X)^{-1}X'(X\beta + u)
+$$
+
+$$
+\hat \beta=(X'X)^{-1}X'X\beta + (X'X)^{-1}X'u
+$$
+
+$$
+\hat \beta=I\beta + (X'X)^{-1}X'u
+$$
+
+$$
+E(\hat \beta|X)=\beta +E[(X'X)^{-1}X'u|X]
+$$
+
+$$
+E(\hat \beta|X)=\beta
+$$
+``` {r aula6_2, warning=FALSE, message=FALSE}
+t(X) %*% u_hat
+```
+<br>
+
+
 Por definição, o $R^2$ por via matricial é calculado por:  
 
 $$
 \mathbf{R^2=\frac{\hat \beta' X'y-n\bar{Y}^2}{y'y-n\bar Y^2}}
 \tag{9}
 $$ 
+
+``` {r aula6_3, warning=FALSE, message=FALSE}
+l <- rep(1, N)
+y_til <- y - l %*% solve(t(l) %*% l) %*% t(l) %*% y
+(r2 <- 1 - t(u_hat) %*% u_hat / t(y_til) %*% y_til)
+```
+
+
 Por definição, o $F$ por via matricial é:  
 
 $$
 \mathbf{F=\frac{(\hat \beta' X'y-n\bar{Y}^2)/(k-1)}{(y'y-\hat \beta' X'y)/(n-k)}}
 \tag{10}
 $$ 
+
+Contudo, pode-se testar uma hipótese conjunta como $\beta_2=\beta_3=0$ usando o teste F. Para fazer isto, estima-se um modelo restrito e compara-se a soma dos quadrados dos resíduso deste modelo contra o original. Definindo a soma do quadrado dos resíduos do modelo restrito como SSRR e do irrestrito como SSRI tais que:
+
+$$
+SSR_R= \sum\limits_{i=1}^{N}(y_i-x_i'\hat \beta_{res})
+$$
+$$
+SSR_I= \sum\limits_{i=1}^{N}(y_i-x_i'\hat \beta_{irres})
+$$
+Monta-se a estatística F segundo a expressão abaixo:
+
+$$
+\frac{\frac{SSR_R-SSR_I}{q}}{\frac{SSR_I}{N-k-1}}
+$$
+O Modelo irrestrito é o original estimado. O modelo restrito faz $\beta_2=\beta_3=0$.
+
+``` {r aula6_4, warning=FALSE, message=FALSE}
+# Monta a matriz de observações da estimação restrita
+X_res <- cbind(const, sal$educ, sal$tenure)
+X_res <- as.matrix(X_res)
+colnames(X_res) <- c("const", "educ", "tenure")
+# Estima os betas da regressão restrita
+beta_res <- solve(t(X_res) %*% X_res) %*% t(X_res) %*% y
+# Computa o resíduo da regressão restrita
+u_res <- y - X_res %*% beta_res
+# Computa a soma do quadrado dos resíduos (reg. restrita)
+(ssr_res <- sum(u_res^2))
+
+# Computa a soma do quadrado dos resíduos (reg. irrestrita)
+(ssr_irres <- sum(u_hat^2))
+
+# Computa o teste F
+(teste_f <- ((ssr_res - ssr_irres) / 2) / (ssr_irres / (N - k - 1)) )
+
+
+# Computa o valor crítico (95%) do teste F
+(f95 <- qf(0.95, 2, N - k - 1))
+
+# Computa o p-valor associado ao teste F acima
+(pvalor <- 1 - pf(teste_f, 2, N - k - 1))
+
+```
+
 <br>
 
 ## Demonstração no R - Modelos de Regressão Múltipla
 
-<br>
+<br> 
 	
 ``` {r pacotes, warning=FALSE, message=FALSE}
-#Direcionado o R para o Diretorio a ser trabalhado
-setwd('C:/Users/Joao Ricardo Lima/Dropbox/tempecon/facape')
 
-#Limpa o Ambiente Global
-rm(list=ls())
-
-options(digits=4)
-
-#Dados do Woldridge
+# Dados do Woldridge
 library(wooldridge)
 library(tseries)
 ```
 
-``` {r aula6_1, warning=FALSE, message=FALSE}
+``` {r aula6_5, warning=FALSE, message=FALSE}
 
 # Puxando os dados do pacote Wooldridge
 data("wage1")
 
-#Estimando a 1 Regressão Multipla
+#Estimando a 1 Regressão Multipla Modelo Irrestrito
 
-reg1 <- lm(wage ~ educ + exper + tenure, data=wage1) #tenure = anos no emprego atual
+reg1 <- lm(log(wage) ~ educ + exper + I(exper^2) + tenure, data=sal)
 summary(reg1)
 
 #Testes de Normalidade
 jarque.bera.test(reg1$residuals)
+
+
+#Estimando a 1 Regressão Multipla Modelo Restrito
+
+regrest1 <- lm(log(wage) ~ educ  + tenure, data=sal)
+summary(regrest1)
 
 #Regressão com variáveis em log
 reg2<-lm(log(wage) ~ educ + log(exper) + tenure, data=wage1)
@@ -653,7 +826,7 @@ jarque.bera.test(reg2$residuals)
 ```
 
 
-``` {r aula6_2, warning=FALSE, message=FALSE}
+``` {r aula6_6, warning=FALSE, message=FALSE}
 data("econmath")
 summary(econmath)
 
@@ -672,7 +845,7 @@ summary(reg4)
 shapiro.test(reg4$residuals)
 ```
 
-``` {r aula6_3, warning=FALSE, message=FALSE}
+``` {r aula6_7, warning=FALSE, message=FALSE}
 data("crime2")
 
 #Estimação do modelo 
