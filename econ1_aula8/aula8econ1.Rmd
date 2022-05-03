@@ -1,0 +1,286 @@
+---
+title: "Aula 8 - Introdução à Econometria"
+author: "João Ricardo F. de Lima"
+date: "`r format(Sys.time(), '%d de %B de %Y.')`"
+output: 
+    html_document:
+        theme: flatly
+        number_sections: yes
+        keep_tex: yes
+        highlight: textmate
+#        includes: 
+#          in_header: "header.html"
+        toc: yes
+        toc_float:
+          collapsed: yes
+          smooth_scroll: yes 
+    bookdown::html_document2: default
+---
+
+<br>
+
+# Quebra de Pressupostos do Modelo Clássico de Regressão Linear
+
+<br>
+
+## Multicolinearidade
+
+<br>
+
+Uma das premissas do Modelo Clássico de Regressão Linear é que não existe **multicolinearidade** entre as variáveis explicativas no modelo de regressão a ser estimado. Originalmente, **multicolinearidade** designava a existência de uma "relação perfeita" entre algumas ou todas as variáveis explicativas de um modelo de regressão. Atualmente, também é considerado o caso de **multicolinearidade** menos que perfeita.
+
+<br>
+
+```{r aula8_1, warning=FALSE, message=FALSE}
+x1 <- c(10,15,18,24,30)
+x2 <- c(50,75,90,120,150)
+x3 <- c(52,75,97,129,152)
+x <- cbind(x1,x2,x3)
+cor(x)
+```
+
+<br>
+
+A correlação entre $X_1$ e $X_2$ é igual a 1. A correlação entre $X_1$ e $X_3$ é 0,995. No primeiro caso se tem perfeita correlação. Se fosse estimar um modelo de regressão com estas duas variáveis explicativas, $X_1$ e $X_2$, teriamos um caso de multicolinearidade perfeita e os betas não seriam estimáveis. A demonstração é dada em Gujarati \& Porter (2009).
+
+<br>
+
+A título de exemplo, se pode observar com a matrix X abaixo:
+
+<br>
+
+$$
+\mathbf{X}=\left[\begin{array}{ccc}
+                1 & 10 & 50  \\
+                1 & 15 & 75 \\
+                1 & 18 & 90  \\
+                \end{array} \right]; \mathbf{X'X}=\left[\begin{array}{ccc}
+                                                        3 & 43 & 215  \\
+                                                        43 & 649 & 3245 \\
+                                                        215 & 3245 & 16225  \\
+                                                        \end{array} \right]
+$$
+
+<br>
+
+sendo o determinante desta matriz igual a zero $|\mathbf{X'X}|=0$.
+
+<br>
+
+```{r aula8_2, warning=FALSE, message=FALSE}
+x1 <- c(1,1,1)
+x2 <- c(10,15,18)
+x3 <- c(50,75,90)
+x <- cbind(x1,x2,x3)
+
+x <- as.matrix(x)
+
+# X'X
+m1 <- t(x) %*% x
+
+m1
+
+# Determinante
+
+det(m1)
+```
+
+<br>
+
+A colinearidade se refere às relações lineares entre as variáveis explicativas. Não inclui relações não lineares, como por exemplo:
+
+<br>
+
+$$
+Y_i=\beta_0+\beta_1X+\beta_2X^2+\beta_3X^3
+$$
+
+<br>
+
+em que Y é o custo total e X a quantidade produzida
+
+<br>
+
+## Consequências da multicolinearidade
+
+<br>
+
+Os estimadores de MQO continuam não viesados e eficientes (possuem variância mínima).
+
+Contudo, esta variância é "inflada", ou seja, muito grande.
+
+Se o erro padrão é grande, os intervalos de confiança também serão mais amplos:
+
+<br>
+
+$$
+IC=\hat\beta\pm t_{\alpha/2}ep(\hat \beta)
+$$
+
+<br>
+
+Como o erro padrão é grande, normalmente os betas são não significativos, ou seja, iguais a zero.
+
+O $R^2$ tende a ser muito alto.
+ 
+Os estimadores de MQO e os erros-padrões podem ser sensíveis às pequenas mudanças nos dados.
+ 
+Em resumo, os resultados encontrados se tornam duvidosos quando se regride com regressores colineares.
+
+<br>
+
+## Como detectar a multicolinearidade?
+
+<br>
+
+Na regressão, encontrar muitos betas estimados não significativos e o $R^2$ muito alto.
+
+Altos valores de correlações entre pares de regressores;
+
+Calcular regressões auxiliares. Dado o modelo: 
+
+<br>
+
+$$
+Y_i=\beta_0+\beta_1X_1+\beta_2X_2+\beta_3X_3+u
+$$
+
+<br>
+
+calcular o $R^2$ e chamar de $R^2$ geral. Depois regredir:
+
+<br>
+
+$$
+X_1=\beta_0+\beta_2X_2+\beta_3X_3+u
+$$
+
+$$
+X_2=\beta_0+\beta_1X_1+\beta_3X_3+u
+$$
+
+$$
+X_3=\beta_0+\beta_1X_1+\beta_2X_2+u
+$$
+<br>
+
+calcular em cada regressão auxiliar os $R^2$: a) $R^2_{x_2.x_3x_4}$; b) $R^2_{x_3.x_2x_4}$; c) $R^2_{x_4.x_2x_3}$
+
+<br>
+
+comparar cada um com o $R^2$ geral. Pela *Regra Prática de Klein*, a multicolinearidade é um problema sério se o $R^2$ obtido em todas as regressões auxiliares for maior que o $R^2$ geral.
+
+<br>
+
+**Fator de Inflação de Variância** - Considerando uma regressão múltipla com duas variáveis explicativas, as variâncias dos coeficientes de inclinação são dadas por: 
+
+<br>
+
+$$
+Var(\hat\beta_2)=\frac{\sigma^2}{\sum x^2_2(1-r^2_{23})}
+$$
+
+$$
+Var(\hat\beta_3)=\frac{\sigma^2}{\sum x^2_3(1-r^2_{23})}
+$$
+
+<br>
+
+em que $\sigma^2$ é a variância do termo de erro e $r^2_{23}$ é o coeficiente de correlação entre $x_2$ e $x_3$.
+
+se considerarmos a razão $\frac{1}{1-r^2_{23}}$, esta mensura o grau na qual a variância do estimador de MQO é inflado devido a colinearidade. Este fator é conhecido como **FIV** (Fator de Inflação de Variância).
+
+Se o FIV for maior do que 10 diz-se que esta variável é altamente colinear;
+ Com mais de 2 variáveis, o quadrado do coeficiente de correlação pode ser obtido do $R^2$ das regressões auxiliares. 
+
+<br>
+
+## Medidas corretivas para Multicolinearidade
+
+<br>
+
+1) Aumentar o tamanho da amostra;
+
+2) Exclusão de variáveis, desde que não cause viés de especificação ou omissão de variável relevante.
+
+<br>
+
+## Multicolinearidade: Exemplo no R
+
+<br>
+
+### Estimação do Modelo
+
+```{r aula8_3, warning=FALSE, message=FALSE}
+#Direcionando o R para o Diretorio a ser trabalhado
+setwd('C:/Users/Joao Ricardo Lima/Dropbox/tempecon/facape/econometria1')
+
+#Inicio do Script
+#Pacotes a serem utilizados
+library(foreign)
+library(car)
+library(corrplot)
+library(HH)
+
+#Lendo os dados no R de um arquivo do Stata
+wage1 <- read.dta("wage1.dta")
+attach(wage1)
+
+#Regressao Multipla
+#tenure= anos no emprego atual
+regressao1 <- lm(log(wage) ~ educ + exper + tenure)
+summary(regressao1)
+```
+
+<br>
+
+### Início da análise: verificação da correlação
+
+```{r aula8_4, warning=FALSE, message=FALSE}
+#Matriz de Correlacoes das variaveis explicativas
+x <- wage1[, c(2,3,4)]
+cor(x)
+pairs(x)
+corrplot(cor(x), order="hclust", tl.col="black", tl.cex = .75)
+```
+
+<br>
+
+### Estimação das regressões auxiliares
+```{r aula8_5, warning=FALSE, message=FALSE}
+#Regressoes Auxiliares
+
+aux1 <- lm(educ ~ exper + tenure)
+summary(aux1)
+
+aux2 <- lm(exper~ educ + tenure)
+summary(aux2)
+
+aux3 <- lm(tenure ~ educ + exper)
+summary(aux3)
+```
+
+<br>
+
+### Cálculo do Fator de Inflação da Variância
+
+```{r aula8_6, warning=FALSE, message=FALSE}
+#Fator de Inflacao da Variancia (FIV)
+vif(regressao1)
+```
+
+### Uso do pacote {performance}
+
+```{r aula8_7, warning=FALSE, message=FALSE, fig.width=10, fig.height=16}
+
+pacman::p_load(
+"performance",
+"lme4",
+"see",
+"qqplotr"
+)
+
+model_performance(regressao1)
+
+check_model(regressao1)
+```
