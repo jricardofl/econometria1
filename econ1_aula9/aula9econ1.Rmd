@@ -1,0 +1,197 @@
+---
+title: "Aula 9 - Introdução à Econometria"
+author: "João Ricardo F. de Lima"
+date: "`r format(Sys.time(), '%d de %B de %Y.')`"
+output: 
+    html_document:
+        theme: flatly
+        number_sections: yes
+        keep_tex: yes
+        highlight: textmate
+#        includes: 
+#          in_header: "header.html"
+        toc: yes
+        toc_float:
+          collapsed: yes
+          smooth_scroll: yes 
+    bookdown::html_document2: default
+---
+
+<br>
+
+# Quebra de Pressupostos do Modelo Clássico de Regressão Linear
+
+<br>
+
+## Heterocedasticidade
+
+<br>
+
+Ocorre quando a variância do termo de erro não é constante $(\sigma^2_i)$. As fontes principais são: presença de *outliers*, modelo incorretamente especificado, assimetria na distribuição de um ou mais regressores e erros de digitação dos dados. 
+
+É mais comum em dados de seção cruzada.
+
+
+Com as relação às propriedades dos estimadores de MQO, na presença de **heterocedasticidade** continuam não-viesados e consistentes, mas não são mais eficientes. O estimador eficiente, ou seja, com variância mínima é o de Mínimos Quadrados Generalizados (MQG).
+
+<br>
+
+## Consequências da Heterocedasticidade
+
+<br>
+
+O uso do método de MQO na presença de **heterocedasticidade** leva a resultados incorretos das significâncias (Testes t e F), levando a conclusões e inferências que podem estar equivocadas.
+ 
+<br>
+
+## Como detectar a Heterocedasticidade?
+
+<br>
+
+
+Sempre uma boa análise gráfica dos resíduos é importante. Contudo, existem testes formais para análise de heterocedasticidade. Os principais são os de White e Breusch-Pagan-Godfrey (BPG).
+
+<br>
+
+
+## Exemplo no R - Estimação do Modelo e Verificação de Normalidade e Multicolinearidade
+
+<br>
+
+```{r aula9_1, warning=FALSE, message=FALSE, fig.width=8, fig.height=6}
+#Direcionado o R para o Diretorio a ser trabalhado
+setwd('C:/Users/Joao Ricardo Lima/Dropbox/tempecon/facape/')
+
+#Limpa o Ambiente Global
+rm(list=ls())
+
+#Inicio do Script
+#Pacotes a serem utilizados
+library(car)
+library(lmtest)
+library(sandwich)
+library(corrplot)
+library(FinTS)
+library(tseries)
+
+#Lendo os dados no R de um arquivo CSV
+dados <- read.csv2('wage.csv', header = T, 
+                   sep=';', dec='.')
+
+dados <- dados[,-1] #Retira a primeira coluna
+
+#Regressao Multipla
+regressao1 <- lm(log(wage) ~ female + union
+                 + educ + exper, data=dados)
+summary(regressao1)
+
+#Teste de Normalidade dos residuos
+jarque.bera.test(regressao1$residuals)
+shapiro.test(regressao1$residuals)
+
+#Analise de Multicolinearidade
+#Matriz de Correlacoes das variaveis explicativas
+x <- dados[, c(2,3,4,6)]
+cor(x)
+corrplot(cor(x), order="hclust", tl.col="black", tl.cex = .75)
+
+#Calculo do Fator de Inflacao da Variancia
+vif(lm(log(wage) ~ female + union + educ + exper, data=dados))
+```
+
+<br>
+
+## Verificação dos resíduos
+
+<br>
+
+```{r aula9_2, warning=FALSE, message=FALSE, fig.width=8, fig.height=6}
+#Analise dos residuos do modelo
+par(mfrow=c(2,2))
+plot(regressao1)
+
+#Salvando os residuos do modelo e os valores estimados
+resid_sq <- (regressao1$residuals)^2
+ajustados1 <- regressao1$fitted.values
+par(mfrow=c(1,1))
+plot(ajustados1, resid_sq)
+```
+
+<br>
+
+## Heterocedasticidade: teste de White
+
+<br>
+
+A **hipótese nula** do Teste de White é os **resíduos são homocedásticos**. Após a regressão, pegar os resíduos ao quadrado e estimar contra os regressores e estes ao quadrado. é possível incluir produtos cruzados também. A estatística de teste $nR^2$ segue uma distribuição de qui-quadrado com graus de liberdade igual ao numero de parâmetros estimados. É um teste para grandes amostras.
+
+<br>
+
+```{r aula9_3, warning=FALSE, message=FALSE, fig.width=8, fig.height=6}
+#Testes de Heterocedasticidade de White
+#Caso especial do BPG
+#H0: Residuos sao homocedasticos.
+regres_white <- lm(log(wage) ~ female +  union
+                 + educ + exper + I(educ^2) + I(exper^2), data=dados)
+bptest(regres_white) 
+```
+
+<br>
+
+## Heterocedasticidade: teste de BPG 
+
+<br>
+
+Semelhante ao Teste de White, mas os resíduos ao quadrado são estimados no teste BPG contra os regressores originais apenas. Na estatística de teste é possível usar o valor do F ou então o $R^2$ multiplicado pelo tamanho da amostra "n". A estatística de teste segue a distribuição de qui-quadrado com graus de liberdade igual ao número de regressores no modelo. **A hipótese nula é homocedasticidade**.
+
+<br>
+
+```{r aula9_4, warning=FALSE, message=FALSE, fig.width=8, fig.height=6}
+#Testes de Heterocedasticidade de White
+#Caso especial do BPG
+#H0: Residuos sao homocedasticos.
+#Testes de Heterocedasticidade de Breusch-Pagan
+bptest(regressao1)
+
+#Testes de Heterocedasticidade NCV
+ncvTest(regressao1)
+```
+
+<br>
+
+## Uso do pacote {performance}
+
+<br>
+
+
+```{r aula9_5, warning=FALSE, message=FALSE, fig.width=10, fig.height=16}
+
+pacman::p_load(
+"performance",
+"lme4",
+"see",
+"qqplotr"
+)
+
+model_performance(regressao1)
+
+check_model(regressao1)
+```
+
+<br>
+
+## Heterocedasticidade: como corrigir?
+
+<br>
+
+Usar mínimos quadrados ponderados se conhecer a verdadeira variância heterocedástica $\sigma^2_i$. Contudo, raramente isto ocorre. O que mais se usa é transformação logarítmica de variáveis com grande variância e o procedimento de White para estimar erros-padrão robustos. O procedimento não altera a estimação no ponto, apenas os erros-padrão corrigindo a heterocedasticidade.
+
+
+```{r aula9_6, warning=FALSE, message=FALSE}
+
+#Correcao da Heterocedasticidade
+regressao1 <- lm(log(wage) ~ female + union
+                 + educ + exper, data=dados)
+coeftest(regressao1, vcov=vcovHC, type='HC1') #(Eviews)
+coeftest(regressao1, vcov=vcovHC, type='HC4') #sugerido (2011)
+```
