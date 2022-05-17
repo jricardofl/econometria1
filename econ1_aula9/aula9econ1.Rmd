@@ -186,6 +186,29 @@ check_model(regressao1)
 
 Usar mínimos quadrados ponderados se conhecer a verdadeira variância heterocedástica $\sigma^2_i$. Contudo, raramente isto ocorre. O que mais se usa é transformação logarítmica de variáveis com grande variância e o procedimento de White para estimar erros-padrão robustos. O procedimento não altera a estimação no ponto, apenas os erros-padrão corrigindo a heterocedasticidade.
 
+A correção clássica de White para a matriz de variância dos coeficientes é dada por:
+
+$$
+Var(\hat \beta|X)=(X'X)^{-1}X'diag(e^2)X(X'X)^{-1}
+$$
+em que $e^2$ são os resíduos ao quadrado e $X$ é a matriz de variáveis explicativas do modelo. 
+
+Contudo, existem diversos outros métodos de ajustamento desta fórmula para a matriz de var-cov dos resíduos, denotada por $\Omega$. No R, a opção "const" retorna os resultados de $\sigma^2(X'X)^{-1}$. As outras opções retornam estimadores de White na forma da expressão  e diferem em termos de $(X'X)^{-1}X' \Omega X(X'X)^{-1}$ e diferem em como é $\Omega$. A diagonal de $\Omega$ será formada pelos elementos $\omega_i$ exposto para cada opção de HC (hc0, hc1, hc2, hc3, hc4):
+
+<br>
+
+1) const = $\omega_i= \hat \sigma^2$ 
+2) HC0 = $\omega_i= \hat u_i^2$ é matriz clássica de correção de Eicker (1963) e popularizada por White (1980);
+3) HC1 = $\omega_i= \frac {n}{n-k}\hat u_i^2$
+4) HC2 = $\omega_i= \frac {\hat u_i^2}{1-h_i}$
+5) HC3 = $\omega_i= \frac {\hat u_i^2}{(1-h_i)^2}$
+6) HC4 = $\omega_i= \frac {\hat u_i^2}{(1-h_i)^{\delta_i}}$ é a matriz de correção conforme Cribari-Neto (2004) para aperfeiçoar a performance em pequenas amostras com presença de observações influentes.
+
+"hc1", "hc2" e "hc3" as matrizes de correção sugeridas por MacKinnon e White (1985) e aperfeiçoadas para pequenas amostras conforme Long e Ervin (2000).
+
+para $h_i=H_{ii}$ como os elementos diagonais da matriz estimada, $\bar h$ é sua média é $\delta_i=min {\{4, h_i/ \bar h}\}$. A opção que retorna os mesmos resultados que o "padrão" de correção de White no Stata e Eviews é a "hc1". 
+
+<br>
 
 ```{r aula9_6, warning=FALSE, message=FALSE}
 
