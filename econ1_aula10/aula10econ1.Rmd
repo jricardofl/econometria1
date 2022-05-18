@@ -1,0 +1,327 @@
+---
+title: "Aula 10 - Introdução à Econometria"
+author: "João Ricardo F. de Lima"
+date: "`r format(Sys.time(), '%d de %B de %Y.')`"
+output: 
+    html_document:
+        theme: flatly
+        number_sections: yes
+        keep_tex: yes
+        highlight: textmate
+#        includes: 
+#          in_header: "header.html"
+        toc: yes
+        toc_float:
+          collapsed: yes
+          smooth_scroll: yes 
+    bookdown::html_document2: default
+---
+
+<br>
+
+# Autocorrelação e viés de especificação
+
+<br>
+
+## O que é Autocorrelação?
+
+Pode existir autocorrelação no cross-section, mas é muito mais presente em séries temporais. Existe dependência entre os termos de erro $(E(u_i u_j \ne 0 \quad \forall \quad  i \ne j))$. Diversos fatores podem gerar a correlação serial, como por exemplo: 
+
+a) inércia; 
+
+b) viés de especificação; 
+
+c) ausência de estacionariedade; 
+
+Com relação à propriedade dos estimadores, com autocorrelação, os estimadores de MQO são não-viesados e consistentes, mas não são eficientes. **Os testes t e F não são mais válidos**. 
+
+Nesta situação, da mesma forma que para a heterocedasticidade, é melhor utilizar o método de Mínimos Quadrados Generalizados (MQG).
+
+Considere um modelo com resíduos que tem correlação de primeira ordem:
+
+$$
+u_t=\rho u_{t-1}+v_t
+$$
+em que $\rho$ é o parâmetro de autocorrelação e "v" é um termo de erro "bem comportado", ou seja, não autocorrelacionado que segue a distribuição Normal com média zero e variância constante $\sigma^2$. 
+
+O coeficiente de autocorrelação $\rho$ pode ser obtido através de 
+
+$$
+\hat \rho = \frac {cov(\epsilon_t, \epsilon_{t-1})}{[var(\epsilon_t)^{1/2}] [var(\epsilon_{t-1})^{1/2}]}
+$$
+
+Com base nesta idéia, alguns testes foram desenvolvidos visando verificar a presença de autocorrelação nos resíduos da regressão. 
+
+## Autocorrelação: Como Detectar?
+
+Considere o modelo abaixo, uma série temporal que se inicia em 1947 e faz uma regressão do consumo em função da renda, da riqueza e da taxa de juros. As três primeiras variáveis estão em log. 
+
+``` {r aula10_1, warning=FALSE, message=FALSE}
+#Direcionado o R para o Diretorio a ser trabalhado
+setwd('C:/Users/Joao Ricardo Lima/Dropbox/tempecon/facape')
+
+#Inicio do Script
+
+#Pacotes a serem usados
+library(forecast)
+library(ggplot2)
+#library(easyGgplot2)
+library(urca)
+library(stargazer)
+library(tseries)
+library(lmtest)
+library(car)
+library(sandwich)
+#install.packages('scatterplot3d')
+library(scatterplot3d)
+
+options(digits=4)
+
+#Extracao dos dados
+dados <- read.table('autocorrelacao.csv', header=T, sep="", dec=".")
+dados <- ts(dados, start=c(1947))
+
+#Estimacao da Equacao de Regressao
+regressao1 <- lm(log(consumo) ~log(renda) + log(riqueza) + tx_juros, data=dados)
+summary(regressao1)
+```
+
+<br>
+
+### MÉTODO GRÁFICO
+
+<br>
+
+Apesar de existirem testes estatísticos, uma análise gráfica pode ser útil para tentar verificar algum comportamento nos dados que de indicativo se existência de autocorrelação.
+
+
+``` {r aula10_2, warning=FALSE, message=FALSE, fig_width= 12, fig_height= 16 }
+#Analise dos residuos do modelo
+par(mfrow=c(2,2))
+plot(regressao1)
+resid <- regressao1$residuals
+resid <- ts(resid, start=c(1947))
+```
+
+``` {r eaula10_3, warning=FALSE, message=FALSE, fig_width= 12, fig_height= 10 }
+par(mfrow=c(1,1))
+scatterplot3d(lag(resid,-1), resid, pch=16, box=FALSE)
+```
+
+<br>
+
+### TESTE DE DURBIN-WATSON
+
+<br>
+
+O teste mais conhecido é o "d" de Durbin-Watson (razão da soma das diferenças ao quadrado entre os sucessivos resíduos e a soma de quadrados dos resíduos):
+
+$$
+d=\frac{\sum_{t=2}^{t=n}(\hat{u}_t-\hat{u}_{t-1})^2}{\sum_{t=1}^{t=n}(\hat{u}_t^2)}
+$$
+
+Possui importantes premissas:
+
+a) a regressão precisa ter intercepto; 
+
+b) o termo de erro precisa ser um AR(1) ($u_t=\rho u_{t-1}+v_t$), não pode ser AR de ordem superior; 
+
+c) o erro deve ser normal; 
+
+d) o modelo não pode ter termos defasados da variável dependente (y); 
+
+Não há um único valor crítico que leve a rejeição ou não da hipótese nula (ausência de autocorrelação), contudo o R mostra um valor de Probabilidade. Gujarati e Porter (2009) demonstram facilmente que $d\approx2(1- \hat{\rho})$. 
+
+$$
+\hat{u}_t=\hat{\rho} u_{t-1}+v_t
+$$
+
+Dado que $-1\le \rho \le 1$, tem-se que $0\le d \le 4$, que são os limites de "d". Como regra prática, espera-se que d esteja próximo de 2 para pressupor que não existe autocorrelação nos resíduos. Quanto mais próximo de 0 (zero), maior a evidência de auto positiva e de 4, de auto negativa.
+
+``` {r aula10_4, warning=FALSE, message=FALSE}
+#Teste de Durbin-Watson
+# Testa the hipotese que nao existe correlacao de 1 lag nos residuos
+dwtest(regressao1, alt="two.sided")
+```
+
+<br>
+
+### TESTE DE BREUSCH-GODFREY
+
+<br>
+
+Teste que permite regressandos defasados inclusos como regressores, processos autoregressivos (AR) de ordens maiores do que 1 e 
+Termos de médias móveis (MA). 
+
+Suponha que o termo de erro siga a seguinte estrutura:
+
+$$
+u_t=\rho_1u_{t-1}+\rho_2u_{t-2}+\dots+\rho_pu_{t-p}+v_t
+$$
+
+$v_t$ é um erro que segue as hipóteses do MCRL.
+
+A hipótese nula do teste BG é
+
+$$
+H_0=\rho_1=\rho_2=\dots=\rho_p=0
+$$
+
+**Ausência de autocorrelação de qualquer ordem**. Dada a não observação de $u_t$ é usado a sua estimativa e estimada uma regressão auxiliar de $e_t$ contra as variáveis explicativas e os termos de erros defasados. Em grandes amostras, o teste BG segue a distribuição $(n-p)R^2 \sim \chi_p^2$.
+
+O teste BG possui as seguintes características: 
+
+A) A variância de $u_t$ seja homocedástica;
+
+B) Definir a ordem de "p". Normalmente isto é um processo de tentativa e erro, com o uso de critérios de Akaike ou Schwarz para definição do melhor modelo. Deve ser escolhido o modelo com menor valor de critério de informação;
+
+<br>
+
+```  {r aula10_5, warning=FALSE, message=FALSE}
+#Teste de Breusch-Godfrey
+#AIC(regressao1)
+#BIC(regressao1)
+bg1 <- bgtest(regressao1,1)
+coeftest(bg1)
+bg1
+
+bg2 <- bgtest(regressao1,2)
+coeftest(bg2)
+bg2
+
+bg3 <- bgtest(regressao1,3)
+coeftest(bg3)
+bg3
+```
+
+<br>
+
+## Autocorrelação: Como Corrigir?
+
+<br>
+
+Existem diversas formas de corrigir a autocorrelação:
+
+A) Transformar as séries, diferenciando-as, caso se saiba o valor de $\rho$ ou considerando $\rho=1$;
+
+B) Fazer uma transformação generalizada: $Y_t- \hat{\rho}(Y_{t-1})$ para obter $\hat{\rho}$, fazer $\approx 1-\frac{d}{2}$;
+
+C) Usar o método de correção dos erros padrões de Newey-West (HAC-Consistente com auto e hetero), desde que a amostra seja grande. Erros robustos.
+
+Com base em Figueiro (2021), o cálculo dos erros-padrão por estimativas robustas serão desejáveis para formas mais gerais de correlação serial, diga-se, com autocorrelações de ordens superiores.
+
+Desta forma, estima-se o modelo padrão de regressão linear por MQO. Em seguida, se pega os resíduos estimados de uma regressão auxiliar de $x_{1t}$ em função dos demais $x_{kt}$ e calcula-se $\hat a = \hat r_t \hat u_t$ em que $\hat u_t$ são os resíduos da estimação original por MQO. Por uma escolha de "g", que pode variar entre a parte inteira de $4(n/100)^{2/9}$ ou $n^{1/4}$, calcula-se
+
+<br>
+
+$$
+\hat v= \sum_{t=1}^{n} k^2 \hat a^2_t + 2 \sum_{h=1}^{g} [1-h/(g+1)]\Big(\sum_{t=h+1}^{n} \hat a_t \hat a{t-h}\Big)
+$$
+<br>
+
+e $ep(\hat \beta_1)=[SE/\hat \sigma]^2\sqrt(\hat v)$, em que SE é o erro padrão usual do MQO para $\hat \beta_j$.
+
+Desta forma obtêm-se os erros-padrões robustos dos parâmetros. Fazendo uso do pacote `` sandwich``, e a opção para a matriz de variância-covariância consistente com heterocedasticidade e autocorrelação vcovHAC conforme o script abaixo. Conforme a ordem da autocorelação (se acima da primeira ordem), pode ser mais indicado considerar o tratamento para a estrutura geral de Newey e West (1987) e Wooldridge (1989), citados por Wooldridge
+(2016, seção 12.5).
+
+<br>
+
+``` {r aula10_6, warning=FALSE, message=FALSE}
+#Correcao do problema da Autocorrelacao - Duas formas
+
+regressao1 <- lm(log(consumo) ~log(renda) + log(riqueza) + tx_juros, data=dados)
+coeftest(regressao1, vcov=NeweyWest)
+coeftest(regressao1, vcov=vcovHAC)
+```
+
+<br>
+
+# Viés de Especificação
+
+<br>
+
+**Omitir uma variável relevante** - *Conseqüências*: 
+
+1) se a variável omitida for correlacionada com alguma incluída, os betas estimados são tendenciosos e inconsistentes; 
+
+2) se não existir correlação, o intercepto é viesado; 
+
+3) a variância do erro estará errada; 
+
+4) IC, erros padrão e testes de hipóteses não são calculados corretamente.
+
+**Inserir uma variável irrelevante** - *Conseqüências*: a perda da eficiência, ou seja, erros-padrão maiores do que as dos parâmetros do modelo verdadeiro. 
+
+A conclusão é que incluir uma variável irrelevante é menos problemático do que omitir uma variável relevante. Existem alguns testes para identificar problemas na especificação dos modelos. 
+
+<br>
+	
+## Viés de Especificação: como detectar?
+
+<br>
+
+O Teste Reset de Ramsey é usado para analisar má especificação do modelo. É um teste mais geral, tanto de variáveis irrelevantes, quanto de forma funcional incorreta e correlação entre os regressores e o termo de erro. A hipótese nula é de que o modelo inicialmente estimado está bem especificado. Uma falha no teste é que diz que o modelo não está bem especificado, mas não se sabe qual alternativa é a melhor. Deve-se testar outras formas, com outras variáveis e ir refazendo o teste.
+
+Considere um modelo de regressão
+
+$$
+y=\beta_0+\beta_1x_1+ \dots +\beta_kx_k+u
+$$
+
+se a hipótese  $E(u|x_1,x_2, \dots ,x_k)=0$ for violada isto indica que a relação funcional entre as variáveis explicadas e explicativas está mal especificada, como mostra Wooldridge (2018, p. 90). 
+
+O Teste Reset adiciona polinômios aos valores estimados por MQO na equação acima para verificar se são significativos e detectar tipos gerais de má especificação de formas funcionais.
+	
+Para fazer o teste é preciso definir quantas funções dos valores estimados serão incluídos na regressão expandida. No geral, quadráticos e cúbicos tem dado bons resultados.
+
+A estatistica do teste é dada por
+
+$$
+F= \frac{\frac{R^2_{novo}-R^2_{velho}}{m}}{\frac{1-R^2_{novo}}{n-p}}
+$$
+
+em que m é o número de novos regressores e p é o número de parâmetros no novo modelo. 
+
+$F \sim F_{m,n-p}$ com n igual ao número de observações.
+
+<br>
+``` {r aula10_7, warning=FALSE, message=FALSE}
+#Direcionado o R para o Diretorio a ser trabalhado
+setwd('C:/Users/Joao Ricardo Lima/Dropbox/tempecon/facape/econometria2')
+
+#Limpa o Ambiente Global
+rm(list=ls())
+
+#Inicio do Script
+#Analise de Regressao com o R
+#Pacotes a serem utilizados
+library(foreign)
+library(lmtest)
+
+#Lendo os dados no R
+wage1 <- read.dta("wage1.dta")
+attach(wage1)
+
+#Regressao Multipla
+
+regressao1 <- lm(lwage ~ educ + I(educ^2) + tenure)
+summary(regressao1)
+
+#Teste de especificação do Modelos
+#Hipotese Nula: Modelo esta bem especificado.
+resettest(regressao1, power=2 , type='fitted')
+resettest(regressao1, power=3 , type='fitted')
+
+#Estimacao do Modelo Linear
+regressao2 <- lm(lwage ~ educ + exper + tenure)
+summary(regressao2)
+
+#Teste de especificacao do Modelos
+#Hipotese Nula: Modelo esta bem especificado.
+resettest(regressao2, power=2 , type='fitted')
+resettest(regressao2, power=3 , type='fitted')
+```
+<br>
+
+O teste Reset de Ramsey é usado para analisar má especificação do modelo. É um teste mais geral, tanto de variáveis irrelevantes, quanto de forma funcional incorreta e correlação entre os regressores e o termo de erro.
+
