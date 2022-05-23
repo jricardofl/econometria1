@@ -1,0 +1,568 @@
+---
+title: "Aula 11 - Introdução à Econometria"
+author: "João Ricardo F. de Lima"
+date: "`r format(Sys.time(), '%d de %B de %Y.')`"
+output: 
+    html_document:
+        theme: flatly
+        number_sections: yes
+        keep_tex: yes
+        highlight: textmate
+#        includes: 
+#          in_header: "header.html"
+        toc: yes
+        toc_float:
+          collapsed: yes
+          smooth_scroll: yes 
+    bookdown::html_document2: default
+---
+
+<br>
+
+# Modelos de Escolha Discreta
+
+<br>
+
+## Introdução
+
+<br>
+
+Também conhecidos como modelos de microeconometria. Analisam escolhas individuais:
+
+<br>
+
+1) voto
+
+2) consumo
+
+3) preferencias
+
+4) adotar ou não uma tecnologia, etc;
+
+<br>
+
+Modelos usados quando a variável dependente não mede quantitativamente um resultado econômico, mas indica se um ou mais resultados ocorreram, ou não. Assim, estes modelos são diferentes dos vistos anteriormente. Os modelos de escolha vão modelar probabilidades e a econometria será usada para fazer afirmações sobre a probabilidade de eventos ocorrerem.
+
+<br>
+
+$$
+P(y=1|x)=P(y=1|x_1,x_2, \dots, x_k)
+\tag{1}
+$$
+
+<br>
+
+Existem vários modelos desta família:
+
+<br>
+
+**Escolha Binária**: O individuo se depara com um par de alternativas e escolhe entre as duas aquela que lhe traz maior grau de utilidade;
+
+**Escolha Multinomial**: O individuo se depara com mais de duas alternativas e escolhe uma que lhe traz maior grau de utilidade;
+
+**Escolha Ordenada**: O individuo expressa a força de suas preferencias com relação a um resultado particular. As possibilidades estão ordenadas de forma a indicar a força das preferencias.
+
+<br>
+
+## Modelos Logit e Probit Binários
+
+<br>
+
+Para estudar comportamento individual, são construídos modelos que relacionem a decisão tomada com um conjunto de covariadas, como no MCRL. Cada uma será analisada no contexto dos modelos de probabilidade:
+
+<br>
+
+$$
+Prob(y=1|x)=G(\beta_0+\beta_1x_1+\dots+\beta_kx_k)=G(x\beta)
+\tag{2}
+$$
+<br>
+
+sendo $Prob(y=1|x)$ a probabilidade de sucesso dado um conjunto de variáveis independentes; $G$ uma função de distribuição de probabilidade acumulada $0<G(z)<1$.
+
+Várias funções não lineares têm sido sugeridas para a função $G$ de forma a se garantir que as probabilidades previstas estejam entre 0 e 1. As duas mais importantes são: Logística e a Normal.
+
+No modelo **Logit**, a função logística é:
+
+<br>
+
+$$
+G(z)=\Lambda(z)\frac{exp(z)}{1+exp(z)}
+\tag{3}
+$$
+<br>
+
+que está entre zero e um para todos os números z reais. Esta é a função de distribuição acumulada de uma variável aleatória logística padrão.
+	
+No modelo **Probit**, $G$ é a a função de distribuição de probabilidade acumulada Normal, expressa pela integral:
+
+<br>
+
+$$
+G(z)=\Phi(z)=\int_{-\infty}^{z} \phi(v)dv
+\tag{4}
+$$
+<br>
+
+em que $\phi(z)$ é a densidade normal padrão.
+
+<br>
+
+$$
+\phi(z)=(2\pi)^{-1/2}exp(-Z^2/2)
+\tag{5}
+$$
+<br>
+
+A escolha de $G$ mais uma vez assegura que (2) esteja entre 0 e 1 para todos os valores dos parâmetros e $x_j$.
+	
+<br>
+
+## Modelos de Regressão Latente
+
+<br>
+
+Considere uma tomada de decisão de compra de um bem. A compra ocorre se o beneficio marginal for maior que o custo marginal da aquisição. É possível modelar a diferença entre benefício e custo como uma variável não observável/latente $y^*$ tal que $y^*=\mathbf{x'\beta}+\varepsilon$. 
+
+Considere que $\varepsilon$ tem média zero e pode ter uma distribuição logística com variância $\pi^2/3$ ou normal padrão com variância 1. $y^*$ não é observado, mas se sabe se a compra foi feita ou não. Então, observa-se:
+
+<br>
+
+$$
+y=1 \quad se \quad y^*>y^L
+$$
+<br>
+
+$$
+y=0 \quad se \quad y^* \leq y^L
+$$
+
+<br>
+
+$y^L$ é denominado de valor limite ou **threshold**. Considerando $y^L=0$ como valor de referência:
+
+<br>
+
+$$
+P(y=1|x)=P(y^*>0|x)=P(\mathbf{x'\beta}+\varepsilon>0)
+$$
+<br>
+
+$$
+=P(\mathbf{\varepsilon>-x'\beta})=P(\mathbf{\varepsilon<x'\beta})=\mathbf{G(x'\beta)}
+\tag{6}
+$$
+<br>
+
+com G(z) sendo a função de distribuição de probabilidade acumulada da variável aleatória, $\varepsilon$.
+
+<br>
+
+## Efeitos Marginais
+
+<br>
+
+Independente do modelo escolhido é importante observar que os parâmetros do modelo, que não é linear, não são necessariamente os efeitos marginais, como ocorre no caso do MCRL. No caso do Modelo Probit, o efeito marginal das variáveis contínuas é dado por:
+
+<br>
+
+$$
+\frac{\partial P(y=1|x)}{\partial x_j}=\phi(\mathbf{x'\beta})\beta_j
+\tag{7}
+$$
+<br>
+
+com o $\phi$ sendo a função de distribuição de probabilidade Normal.
+
+Assim, se busca explicar como a probabilidade de que $y=1$ muda se a variável explicativa $x_j$ mudar em uma unidade.
+
+No caso do Modelo Logit, o efeito marginal das variáveis contínuas é dado por:
+
+<br>
+
+$$
+\frac{\partial P(y=1|x)}{\partial x_j}=\lambda(\mathbf{x'\beta})[1-(\mathbf{x'\beta})]\beta_j
+\tag{8}
+$$
+<br>
+
+com o $\lambda$ sendo a função de distribuição de probabilidade logística.  No caso da variável explicativa ser uma dummy, o efeito marginal é dado por 
+
+<br>
+
+$$
+P(y=1|x, d=1)-P(y=1|x, d=0)
+\tag{9}
+$$
+<br>
+
+ou, em outras palavras,
+
+<br>
+
+$$
+G(\beta_0+\beta_1+\dots+\beta_kx_k-G(\beta_0+\dots+\beta_kx_k)
+\tag{10}
+$$
+
+<br>
+
+Assim, por exemplo, se o y for uma variável relativa a adoção ou não de uma tecnologia agropecuária e x for uma variável *dummy* ter recebido assistência técnica e gerencial (ATeG) em sua propriedade ou não ter, então, a equação dada em (10) será a mudança na probabilidade de adotar a tecnologia em razão de ter recebido ATeG. Vale ressaltar que apenas o conhecimento do sinal do $\beta_1$ é suficiente para determinar se ter recebido ATeG teve efeito positivo ou negativo na adoção. Contudo, para encontrar a magnitude do efeito, tem-se que estimar a quantidade em (10).
+	
+Considere o modelo abaixo:
+
+<br>
+
+$$
+P(y=1|z)=G(\beta_0+\beta_1z_1+\beta_2z_1^2+\beta_3log(z_2)+\beta_4z_3)
+\tag{11}
+$$
+<br>
+
+Os efeitos marginais são:
+
+$$
+\frac{\partial P(y=1|z)}{\partial z_1}=g(\mathbf{x'\beta})(\beta_1+2\beta_2z_1)
+\tag{12}
+$$
+<br>
+
+$$
+\frac{\partial P(y=1|z)}{\partial z_2}=g(\mathbf{x'\beta})(\frac{\beta_3}{z_2})
+\tag{13}
+$$
+<br>
+
+$$
+\frac{\partial P(y=1|z)}{\partial z_3}=g(\mathbf{x'\beta})(\beta_4)
+\tag{14}
+$$
+	
+<br>
+
+## Estimação por Máxima Verossimilhança
+
+<br>
+
+De uma amostra é possível retirar n indivíduos, que estarão separados em $n_1$ (número de  observações na qual Y=0) e $n_2$ (número de observações com Y=1 ). Uma função de Verossimilhança pode ser definida de forma que:
+
+
+$$
+L=P(Y_1,Y_2,..., Y_n)=P(Y_1)P(Y_2)...P(Y_n)
+$$
+<br>
+
+Levando em consideração o fato de a probabilidade da segunda alternativa escolhida ser igual a 1 menos a probabilidade de ser escolhida a primeira alternativa, a função de verossimilhança passa a ser: 
+
+
+$$
+L=P(y_1=0).P(y_2=0) \dots P(y_m=0).P(y_{m+1}=1).P(y_{m+2}=1) \dots P(y_n=1)
+\tag{15}
+$$
+<br>
+
+Dado que:
+
+$$
+P(y_i=0)=1-P(y_i=1)=1-G(\mathbf{x'\beta})
+$$
+<br>
+
+$$
+P(y_i=1)=G(\mathbf{x'\beta}) \quad e
+$$
+<br>
+
+usando $\Pi$ para representar o produtório, a função de verossimilhança pode ser reescrita: 
+
+$$
+L=\Pi[1-G(\mathbf{x'\beta})]\Pi G(\mathbf{x'\beta})
+$$
+
+<br>
+
+que é a mesma coisa de
+
+<br>
+
+$$
+L=\Pi G(\mathbf{x'\beta})^y[1-G(\mathbf{x'\beta}]^{1-y}, y=0,1
+\tag{16}
+$$
+<br>
+
+Normalmente trabalha-se com a função logaritmo de verossimilhança, definida por: 
+
+<br>
+
+$$
+ln(L)=\sum\{y.ln[G(\mathbf{x'\beta})]+(1-y).ln[1-G(\mathbf{x'\beta})]\}
+\tag{17}
+$$
+<br>
+
+As equações de verossimilhança a serem maximizadas são:
+
+$$
+\frac{\partial ln(L)}{\partial \beta}= \sum\bigg[\frac{y_i g_i}{G_i}+(1-y_i)\frac{-g_i}{(1-G_i)}\bigg]\mathbf{x_i} =0
+\tag{18}
+$$
+
+<br>
+
+onde *g* é a função de densidade de probabilidade.
+
+A equação de probabilidade dada em (18) será não linear e exigirá uma solução iterativa. Para o modelo Logit, ao inserir (3) e (8), obtem-se, após um pouco de manipulação algébrica, as equações de probabilidade:
+
+$$
+\frac{\partial ln (L)}{\partial \beta}=\sum(y_i-\Lambda_i) \mathbf{x}_i=0
+\tag{19}
+$$
+
+<br>
+
+Para o Probit, o log de verossimilhança é:
+
+$$
+ln L=\sum_{y_i=0} ln[1-\Phi(x_i'\beta)]+ \sum_{y_i=1} ln \Phi(x_i'\beta) 
+\tag{20}
+$$
+<br>
+
+A condição de maximização de primeira ordem de L é
+
+$$
+\frac{\partial ln (L)}{\partial \beta}=\sum_{y_i=0} \frac{-\phi_i}{1-\Phi_i}\mathbf{x}_i +\sum_{y_i=1}  \frac{\phi_i}{\Phi_i}\mathbf{x}_i=\sum_{y_i=0} \lambda_i^0 \mathbf{x}_i+\sum_{y_i=1} \lambda_i^1 \mathbf{x}_i
+\tag{21}
+$$
+<br>
+
+O qual pode ser reduzido para
+
+$$
+\frac{\partial ln (L)}{\partial \beta}=\sum_{i=1}^{n} \bigg[\frac{q_i\phi(q_ix_i'\beta)}{\Phi(q_ix_i'\beta)}\bigg]\mathbf{x}_i=\sum_{i=1}^{n} \lambda_i \mathbf{x}_i=0
+\tag{22}
+$$
+em que $q_i=2y_i-1$
+
+<br>
+
+## Interpretações no Logit
+
+<br>
+
+Os coeficientes da regressão logit fornecem a alteração no logaritmo das chances para um aumento de uma unidade na variável independente, ou seja, é um resultado de pouco interesse, difícil interpretação. Assim, o usual é fazer o antilog dos betas estimados e interpretar os resultados como as razões de chances. O efeito marginal é a variação na probabilidade.
+
+A estatística da razão de verossimilhança baseia-se no mesmo conceito do teste F do modelo Linear. É calculada como o dobro da diferença na log-verossimilhança entre dois modelos (restrito e o irrestrito).
+
+<br>
+
+$$
+RV=2(L_{ir}-L_r) \sim \chi^2_q
+\tag{23}
+$$
+
+<br>
+
+q é igual ao número de variáveis independentes da regressão.	
+	
+Para a análise da qualidade do ajustamento do modelo, existem algumas possibilidades. Por exemplo, o $Pseudo-R^2$ de McFadden, que sugere um indicador 1-$L_{ir}/L_o$, sendo o primeiro o valor do log de verossimilhança do modelo estimado e o segundo o log verossimilhança de um modelo estimado apenas com intercepto. Se as variáveis explicativas não tiverem sentido, $L_{ir}/L_o=1$ e o pseudo $R^2$ será igual a zero. 
+
+Quanto mais o $L_{ir}$ se aproxima de zero, mais o pseudo $R^2$ tende a 1.
+		
+A outra possibilidade é verificar um indicador de qualidade do ajustamento chamado percentagem corretamente predita. Neste caso, se define um preditor binário das $y_i$ para ser um, se a probabilidade predita for pelo menos 0,5 e zero, caso contrário. Matematicamente, $\tilde y_i=1$ se $G(\hat{\beta_0}+x_i\hat{\beta}) \geq 0,5$ e $\tilde y_i=0$ se $G(\hat{\beta_0}+x_i\hat{\beta}) < 0,5$. A percentagem corretamente prevista é a percentagem de vezes que $\tilde y_i=y_i$.
+
+<br>	
+
+## Exemplo no R
+
+O exemplo abaixo foi retirado do site (https://stats.oarc.ucla.edu/r/dae/logit-regression/). Um pesquisador está interessado em como variáveis, como GRE (Graduate Record Exam scores), GPA (nota média) e prestígio da instituição de graduação, afetam a admissão na pós-graduação. A variável de resposta, admitir/não admitir, é uma variável binária.
+
+<br>
+
+```{r  aula11_1, warning=FALSE, message=FALSE}
+
+mydata <- read.csv("https://stats.idre.ucla.edu/stat/data/binary.csv")
+## ver as primeiras linhas dos dados
+head(mydata)
+
+```
+
+Este conjunto de dados tem uma variável de resposta binária (resultado, dependente) chamada admitir. Existem três variáveis preditoras: gre, gpa e rank. Trataremos as variáveis gre e gpa como contínuas. A variável rank assume os valores de 1 a 4. As instituições com rank 1 têm o maior prestígio, enquanto aquelas com rank 4 têm o menor. Podemos obter descrições básicas para todo o conjunto de dados usando sumário. Para obter os desvios padrão, usamos sapply para aplicar a função sd a cada variável no conjunto de dados.
+
+<br>
+
+```{r  aula11_2, warning=FALSE, message=FALSE}
+
+summary(mydata)
+sapply(mydata, sd)
+## tabela de contingência bidirecional de resultado categórico e preditores que queremos
+## para garantir que não haja 0 células
+xtabs(~admit + rank, data = mydata)
+
+```
+
+O código abaixo estima um modelo de regressão logística usando a função glm (modelo linear generalizado). Primeiro, convertemos rank em um fator para indicar que rank deve ser tratado como uma variável categórica.
+
+<br>
+
+### Exemplo com o Modelo Logit
+
+
+```{r  aula11_3, warning=FALSE, message=FALSE}
+
+mydata$rank <- factor(mydata$rank)
+mylogit <- glm(admit ~ gre + gpa + rank, data = mydata, family = "binomial")
+summary(mylogit)
+
+```
+
+<br>
+
+Na saída acima, a primeira coisa que vemos é a chamada, isso é R nos lembrando qual era o modelo que rodamos, quais opções especificamos, etc.
+
+Em seguida, vemos os desvios dos resíduos, que são uma medida de ajuste do modelo. Esta parte da saída mostra a distribuição dos desvios dos resíduos para casos individuais usadosno modelo. 
+
+A próxima parte da saída mostra os coeficientes, seus erros-padrão, a estatística z (às vezes chamada de estatística-z Wald) e os valores p associados. Tanto gre quanto gpa são estatisticamente significativos, assim como os três termos para rank. Os coeficientes de regressão logística dão a mudança nas probabilidades logarítmicas do resultado para um aumento de uma unidade na variável preditora.
+
+Para cada mudança de unidade em gre, as probabilidades logarítmicas de admissão (versus não admissão) aumentam em 0,002.
+
+Para um aumento de uma unidade no gpa, as chances logarítmicas de ser admitido na pós-graduação aumentam em 0,804.
+
+As variáveis indicadoras para rank têm uma interpretação ligeiramente diferente. Por exemplo, ter frequentado uma instituição de graduação com rank 2, versus uma instituição com rank 1, altera o log das chances de admissão em -0,675.
+
+Abaixo da tabela de coeficientes estão os índices de ajuste, incluindo os resíduos nulos e desvio do resíduo e o Critério de informação de Akaike. 
+
+Podemos usar a função confint para obter intervalos de confiança para as estimativas dos coeficientes. Observe que para modelos logísticos, os intervalos de confiança são baseados na função de probabilidade logarítmica perfilada. Também podemos obter ICs com base apenas nos erros padrão usando o método padrão.
+
+<br>
+
+```{r  aula11_4, warning=FALSE, message=FALSE}
+
+# Intervalo de Confiança
+confint(mylogit)
+
+## Intervalo de Confiança usando erros padrão
+confint.default(mylogit)
+
+```
+
+<br>
+
+Você também pode exponenciar os coeficientes e interpretá-los como odds-ratios. R fará esse cálculo para você. Para obter os coeficientes exponenciados, você diz a R que deseja exponenciar (exp), e que o objeto que deseja exponenciar é chamado de coeficientes e faz parte de mylogit (coef(mylogit)). Podemos usar a mesma lógica para obter as razões de chances e seus intervalos de confiança, expondo os intervalos de confiança anteriores. Para colocar tudo em uma tabela, usamos cbind para vincular os coeficientes e intervalos de confiança em coluna.
+
+<br>
+
+```{r  aula11_5, warning=FALSE, message=FALSE}
+
+exp(coef(mylogit))
+
+## odds ratios e 95% IC
+exp(cbind(OR = coef(mylogit), confint(mylogit)))
+```
+
+<br>
+
+Agora podemos dizer que para um aumento de uma unidade no gpa, as chances de ser admitido na pós-graduação (versus não ser admitido) aumentam por um fator de 2,23. Observe que, enquanto R o produz, a razão de chances para o intercepto geralmente não é interpretada.
+
+Você também pode usar probabilidades previstas para ajudá-lo a entender o modelo. As probabilidades previstas podem ser calculadas para variáveis preditoras categóricas e contínuas. Para criar probabilidades previstas, primeiro precisamos criar um novo quadro de dados com os valores que queremos que as variáveis independentes assumam para criar nossas previsões.
+
+Começaremos calculando a probabilidade prevista de admissão em cada valor de classificação, mantendo gre e gpa em suas médias. Primeiro, criamos e visualizamos o quadro de dados.
+
+<br>
+
+```{r  aula11_6, warning=FALSE, message=FALSE}
+newdata1 <- with(mydata, data.frame(gre = mean(gre), gpa = mean(gpa), rank = factor(1:4)))
+
+## view data frame
+newdata1
+```
+
+<br>
+
+Esses objetos devem ter os mesmos nomes que as variáveis em sua regressão logística acima (neste exemplo, a média para gre deve ser denominada gre). Agora que temos o quadro de dados que queremos usar para calcular as probabilidades previstas, podemos dizer para o R para criar as probabilidades previstas. 
+
+A primeira linha de código abaixo é bastante compacta, vamos separá-la para discutir o que vários componentes fazem. O newdata1$rankP diz para o R que queremos criar uma nova variável no conjunto de dados (data frame) newdata1 chamada rankP, o resto do comando diz a R que os valores de rankP devem ser previsões feitas usando a função predict(). 
+
+As opções entre parênteses dizem ao R que as previsões devem ser baseadas na análise mylogit com valores das variáveis preditoras provenientes de newdata1 e que o tipo de previsão é uma probabilidade prevista (type="response"). A segunda linha do código lista os valores no quadro de dados newdata1. Embora não seja particularmente bonita, esta é uma tabela de probabilidades previstas.
+
+<br>
+
+```{r  aula11_7, warning=FALSE, message=FALSE}
+newdata1$rankP <- predict(mylogit, newdata = newdata1, type = "response")
+newdata1
+```
+
+<br>
+
+Na saída acima, vemos que a probabilidade prevista de ser aceito em um programa de pós-graduação é de 0,52 para alunos das instituições de graduação de maior prestígio (rank = 1) e 0,18 para alunos das instituições de classificação mais baixa (rank = 4), mantendo gre e gpa em seus meios. Podemos fazer algo muito semelhante para criar uma tabela de probabilidades preditas variando o valor de gre e rank. Vamos plotá-los, então criaremos 100 valores de gre entre 200 e 800, em cada valor de classificação (ou seja, 1, 2, 3 e 4).
+
+<br>
+
+```{r  aula11_8, warning=FALSE, message=FALSE}
+newdata2 <- with(mydata, data.frame(gre = rep(seq(from = 200, to = 800, length.out = 100), 4), gpa = mean(gpa), rank = factor(rep(1:4, each = 100))))
+```
+
+<br>
+
+O código para gerar as probabilidades previstas (a primeira linha abaixo) é o mesmo de antes, exceto que também pediremos erros padrão para que possamos traçar um intervalo de confiança. Obtemos as estimativas na escala do link e transformamos de volta os valores previstos e os limites de confiança em probabilidades.
+
+<br>
+
+```{r  aula11_9, warning=FALSE, message=FALSE}
+newdata3 <- cbind(newdata2, predict(mylogit, newdata = newdata2, type = "link",
+    se = TRUE))
+newdata3 <- within(newdata3, {
+    PredictedProb <- plogis(fit)
+    LL <- plogis(fit - (1.96 * se.fit))
+    UL <- plogis(fit + (1.96 * se.fit))
+})
+
+## ver as primeiras linhas do conjunto de dados final
+head(newdata3)
+```
+
+
+Também pode ser útil usar gráficos de probabilidades previstas para entender e/ou apresentar o modelo. Usaremos o pacote ggplot2 para gráficos. Abaixo fazemos um gráfico com as probabilidades previstas e intervalos de confiança de 95%.
+
+<br>
+
+```{r  aula11_10, warning=FALSE, message=FALSE}
+library(ggplot2)
+ggplot(newdata3, aes(x = gre, y = PredictedProb)) + geom_ribbon(aes(ymin = LL,
+    ymax = UL, fill = rank), alpha = 0.2) + geom_line(aes(colour = rank),
+    size = 1)
+```
+
+<br>
+
+```{r  aula11_11, warning=FALSE, message=FALSE}
+library(margins)
+#Stata=margins, dydx(*) para calculo dos efeitos marginais
+mydata <- read.csv("https://stats.idre.ucla.edu/stat/data/binary.csv")
+mylogit <- glm(admit ~ gre + gpa + rank, data = mydata, family = "binomial")
+m <- margins(mylogit)
+summary(m, type= "response")
+
+m1 <- margins(mylogit, at=list(rank=3:4))
+summary(m1, type= "response")
+
+m2 <- margins(mylogit, at=list(rank=1:2, gpa=3))
+summary(m2, type= "response")
+```
+
+### Exemplo com o Modelo Probit
+
+```{r  aula11_12, warning=FALSE, message=FALSE}
+myprobit <- glm(admit ~ gre + gpa + rank, family = binomial(link = "probit"), 
+    data = mydata)
+
+summary(myprobit)
+
+confint.default(myprobit)
+
+newdata1prob <- with(mydata, data.frame(rank=3 , gpa=4, gre=650))
+newdata1prob$rankP <- predict(myprobit, newdata1prob, type = "response")
+newdata1prob
+
+```
