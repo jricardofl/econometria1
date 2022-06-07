@@ -1,0 +1,460 @@
+---
+title: "Aula 12 - Introdução à Econometria"
+author: "João Ricardo F. de Lima"
+date: "`r format(Sys.time(), '%d de %B de %Y.')`"
+output: 
+    html_document:
+        theme: flatly
+        number_sections: yes
+        keep_tex: yes
+        highlight: textmate
+#        includes: 
+#          in_header: "header.html"
+        toc: yes
+        toc_float:
+          collapsed: yes
+          smooth_scroll: yes 
+    bookdown::html_document2: default
+---
+
+<br>
+
+# Modelos de Dados em Painel
+
+<br>
+
+## As Estruturas de Dados
+
+<br>
+
+**Corte transversal** (seção cruzada): amostra de indivíduos, consumidores, empresas, países, etc., tomada em um instante do tempo;
+
+**Série Temporal**: observações sobre uma variável ou muitas variáveis ao longo do tempo;
+
+**Cortes transversais independentes agrupados**: tem características tanto de corte transversal quanto de série temporal. Ocorre quando se agrupa cortes transversais coletados em diferentes instantes do tempo;
+
+```{r aula12_1, warning=FALSE, message=FALSE}
+#Cortes transversais agrupados: 2 anos de preços de imóveis.
+
+data(hprice3, package='wooldridge')
+
+head(hprice3[c(175:184),c(1:9)],10)
+```
+
+<br>
+
+**Dados em Painel** (longitudinais): consiste em uma série temporal para cada registro do corte transversal do conjunto de dados. Em outras palavras, modelos de regressão com dados em painel são os que estudam o *mesmo grupo} de "entidades" ao longo do tempo.
+
+```{r aula12_2, warning=FALSE, message=FALSE}
+#Conjunto de Dados em Painel: Estatisticas Crime em estados dos USA
+
+data(murder, package='wooldridge')
+
+head(murder[,c(1:6)],9)
+```
+
+<br>
+
+## A Importância dos Dados em Painel
+
+<br>
+
+Baltagi (1995) lista os seguintes fatores como sendo vantagens dos dados em painel:  
+
+1) Trata com indivíduos, empresas, estados, países ao longo do tempo. É necessário que exista uma heterogeneidade nestas unidades, na qual pode ser frequentemente não observada; 
+
+2) Quando se combina cortes transversais e séries temporais, se tem dados com maior informação, maior variabilidade e menor colinearidade, mais graus de liberdade e eficiência.
+
+3) Quando se estuda as observações do corte transversal ao longo do tempo, os dados em painel são mais adequados para se estudar as dinâmicas de mudanças; 
+
+4) Dados em painel podem detectar melhor e medir efeitos que não podem ser observados com dados empilhados de cross-section (cortes transversais agrupados) ou séries temporais.
+
+<br>
+
+## Notação Básica
+
+<br>
+
+Considere a indexação de todas as variáveis com $i$ para para o indivíduo $i = 1, ..., N$ e $t$ para o período $t = 1, ..., T$. Assim, o modelo de regressão linear clássico pode ser escrito como abaixo, 
+
+<br>
+
+$$
+y_{it} = \beta_0 + x_{it}^{'} \beta + \varepsilon_{it} 
+\tag{1}
+$$
+
+<br>
+
+onde $x_{it}$ é um vetor de dimensão $K$ contendo as variáveis explicativas, sem considerar o termo constante. Esse tipo de modelo impõe que o intercepto $\beta_0$ e o coeficiente de inclinação em $\beta$ sejam idênticos para todos os indivíduos e períodos. O termo de erro em (1) varia ao longo dos indivíduos e tempo, capturando todos os fatores não observados que afetam $y_{it}$.
+
+O modelo dado em (1) possui as premissas usuais requeridas para se ter estimadores não viesados, consistentes e eficientes.
+
+<br>
+
+$$
+E[\epsilon_{it}|x_{i1}, x_{i2}, \dots, x_{iT}]=0
+$$
+
+$$
+Var[\epsilon_{it}|x_{i1}, x_{i2}, \dots, x_{iT}]=\sigma^2_\epsilon
+$$
+
+$$
+Cov[\epsilon_{it},\epsilon_{js} |x_{i1}, x_{i2}, \dots, x_{iT}]=0 \quad \forall i \neq j \quad ou \quad t\neq s
+$$
+<br>
+
+## Cortes Transversais Agrupados
+
+<br>
+
+Uma razão para usar agrupamentos independentes de cortes transversais é aumentar o N. Com isso, pode-se obter estimadores mais precisos e estatísticas de teste mais poderosas;
+
+Para refletir o fato de que a população pode ter distribuições diferentes em períodos de tempo distintos, é permitido ao intercepto diferir ao longo dos períodos; 
+
+Isso pode ser implementado através da adição de variáveis *dummies* para os $n-1$ períodos da amostra. 
+
+<br>
+
+## Cortes Transversais Agrupados - Exemplo no R
+
+<br>
+
+O dataset cps contém dados de 1978 e 1985 da **Current Population Surveys**. O código abaixo importa os dados e estima o modelo sugerido em Wooldridge (2016).
+
+<br>
+```{r aula12_3, warning=FALSE, message=FALSE}
+# Usando o R para verificar mudanças no retorno da eduação e a diferença salarial por gênero
+
+data(cps78_85, package='wooldridge')
+
+cps <- cps78_85
+
+reg1 <- lm(lwage~y85*(educ+female)+exper
+           +I((exper^2)/100)+union, data=cps)
+
+summary(reg1)
+```
+<br>
+
+O ano base é 1978. y85 é uma variável dummy igual a um se a observação se refere ao ano de 1985 e 0, caso contrário, ou seja, do ano de 1978. A constante é o intercepto do ano base. A constante mais o coeficiente de y85 é o intercepto de 1985. 
+
+O retorno da educação em 1978 é estimado (forma não precisa) em 7,5% e para o ano de 1985 é cerca de 1,846 mais elevado (7,5 + 1,846=9,346%).
+
+Em 1978, tudo o mais constante, uma mulher ganhava precisamente ``r (exp(-0.316709)-1)*100``% a menos do que um homem. Em 1985 o valor é ``r (exp(-0.316709+0.085052)-1)*100``%.
+
+<br>
+
+## O Estimador de Diferenças em Diferenças
+
+<br>
+
+O *estimador de diferença em diferenças* é um tipo de corte transversal agrupado que pode ser muito útil para avaliar o impacto de um determinado evento ou decisão política (em termos gerais);
+
+Suponha que exista um evento exógeno que altere "x". A ideia é comparar a mudança ao longo do tempo de um resultado de interesse entre um grupo de observações impactado e outro não impactado.
+
+Um modelo simples de comparação dos resultados é a avaliação de um grupo antes e depois do evento, em uma regressão da forma
+
+<br>
+$$ 
+y_{it} = \alpha_0 + \beta D_t+ \varepsilon_{it}, \quad i=1, \dots, N, \quad t=0,1 \tag{2} 
+$$ 
+onde $D_t=1$ no período 1 (pós-evento) e $D_t=0$ no período 0, e $y_{it}$ mede o resultado;
+
+Esta regressão com dados agrupados vai gerar uma estimativa do impacto da política igual a $\beta$ 
+
+<br>
+
+$$
+\hat{\beta} = N^{-1} \sum_{i}^{max}(y_{i1}-y_{i0})=\bar{y}_1-\bar{y}_0 \tag{3} 
+$$
+
+No entanto, esta especificação de um único grupo antes e após a intervenção tem o pressuposto forte de que o grupo permanece comparável no tempo;
+
+Uma maneira de melhorar esta especificação consiste na inclusão de um grupo adicional que não sofreu tratamento, e para o qual se tenha observações nos dois períodos.
+
+A especificação passa a ser então 
+
+<br>
+
+$$
+y_{it}^j = \alpha + \alpha_1D_t+ \alpha^1D^J+\beta D_t^j+ \varepsilon_{it}^j
+\tag{4}
+$$
+<br>
+
+onde j é para os grupos, t o tempo e $\varepsilon$ é o termo de erro homocedástico. A equação (4) pode ter a inclusão de covariadas.
+
+Esta relação implica que para o grupo de tratamento, tem-se o pré-evento dado por 
+
+$$ 
+y_{i0}^1 = \alpha + \alpha^1D^1+ \varepsilon_{i0}^1 
+\tag{5} 
+$$ 
+e pós-evento 
+
+$$ 
+y_{i1}^1 = \alpha + \alpha_1+\alpha^1D^1+ \beta+\varepsilon_{i1}^1
+\tag{6} 
+$$ 
+e o impacto é 
+
+$$
+y_{i1}^1 - y_{i0}^1= \alpha_1 + \beta+\varepsilon_{i1}^1 - \varepsilon_{i0}^1 
+\tag{7} 
+$$
+<br>
+
+As equações correspondentes para o grupo não-tratado são 
+
+$$
+y_{i0}^0= \alpha + \varepsilon_{i0}^0 
+\tag{8} 
+$$ 
+
+$$ 
+y_{i1}^0= \alpha + \alpha_1+\varepsilon_{i1}^0 
+\tag{9} 
+$$
+e a diferença é
+
+$$
+y_{i1}^0 - y_{i0}^0= \alpha_1 + \varepsilon_{i1}^0 - \varepsilon_{i0}^0
+\tag{10}
+$$
+<br>
+
+O estimador de Diff-in-Diff vêm, então, da diferença entre as equações (7) e (10) 
+
+$$
+(y_{i1}^1 - y_{i0}^1)-(y_{i1}^0 - y_{i0}^0)= \beta+ (\varepsilon_{i1}^1 - \varepsilon_{i0}^1) - (\varepsilon_{i1}^0 - \varepsilon_{i0}^0) 
+\tag{11} 
+$$
+<br>
+
+E assumindo que $E[(\varepsilon_{i1}^1 - \varepsilon_{i0}^1) - (\varepsilon_{i1}^0 - \varepsilon_{i0}^0)]=0$, obtém-se uma estimativa não viesada de $\beta$.
+
+<br>
+
+
+```{r aula12_4, warning=FALSE, message=FALSE}
+# Usando o R para verificar efeito da localização de um incinerador sobre os preços de imóveis
+
+data(kielmc, package='wooldridge')
+
+kielmc <- kielmc
+
+# Regressões separadas para 1978 e 1981
+
+reg2 <- lm(rprice~nearinc, data=kielmc, subset=(year==1978))
+summary(reg2)
+```
+
+<br>
+
+O intercepto mostra o valor médio dos imóveis e o coeficiente da variável dummy indica que mesmo antes da existência do incinerador, os imóveis daquela localidade era cerca de 18,8 mil dólares mais baixos do que o de outro distante do local.
+
+<br>
+
+```{r aula12_5, warning=FALSE, message=FALSE}
+reg3 <- lm(rprice~nearinc, data=kielmc, subset=(year==1981))
+summary(reg3)
+```
+<br>
+
+No caso da regressão no ano de 1981 os resultados mostram que os preços dos imóveis subiram para 101 mil dólares aproximadamente e que os imóveis localizados perto de onde foi instalado o incinerador estão cerca de 30,7 mil dólares mais baratos.
+
+Como se pode avaliar se a instalação do incinerador reduziu os preços dos imóveis? Para isto é preciso verificar como mudou o coeficiente da variável dummy nos dois períodos. 
+
+<br>
+```{r aula12_6, warning=FALSE, message=FALSE}
+#Diferença entre os coeficientes
+coef.78<-coef(lm(rprice~nearinc, data=kielmc, subset=(year==1978)))
+coef.81<-coef(lm(rprice~nearinc, data=kielmc, subset=(year==1981)))
+coef.81[2]-coef.78[2]
+
+#Mesmos Resultados, outra forma
+library(lmtest)
+coeftest(lm(rprice~nearinc*y81, data=kielmc))
+```
+
+<br>
+
+Assim, por duas maneiras distintas de estimar o modelo é possível verficar que a diferença entre os dois coefientes é de -11.863,9 dólares. Esta é a estimativa do efeito do incinerador sobre os preços dos imóveis pertos de sua localização. O valor da estimativa ficou conhecido na econometria como estimador de diferença em diferenças.
+
+$$
+\hat{\delta}_1 = (\bar{rprice_{81,pr}} - \bar{rprice_{81,af}}) - (\bar{rprice_{78,pr}} - \bar{rprice_{78,af}})=-11.863,9
+$$
+
+Contudo, precisa-se saber se este valor é ou não estatisticamente igual a zero. Como pode ser visto na segunda forma de estimar o valor, o valor de probabilidade é maior do que 0,10, não rejeitando a hipótese nula. Assim, não se pode afirmar que a instalação do incinerador alterou as diferenças de preços de imóveis mais distantes.
+
+<br>
+```{r aula12_7, warning=FALSE, message=FALSE}
+
+coeftest(lm(log(rprice)~nearinc*y81, data=kielmc))
+#Inclusão de covariaveis
+coeftest(lm(log(price)~nearinc*y81+lintst+lland+larea+rooms, data=kielmc) )
+```
+
+<br>
+
+As estimativas acima são para mostrar que logaritimizando a variável dependente se tem um efeito percentual do efeito do incinerador sobre os preços dos imóveis. O coeficiente mostra que os imóveis próximos do incinerador reduziram cerca de 6,3% no seu valor. Contudo, não é estatisticamente significativo. 
+
+Ao se inserir outras variáveis explicativas no modelo como a distância para a rodovia interestadual (instst), área do terreno (land), área construida (area) e o número de quartos (rooms), a redução passa a ser de aproximadamente 11,2% e estatisticamente significativo a 10% de probabilidade. 
+
+Diferentemente de um experimento estatístico verdadeiro, no qual os grupos de controle e de tratamento são obtidos de forma aleatória, no caso em análise os grupos surgem da mudança em um fator exógeno;
+
+Assim, de forma a controlar diferenças sistemáticas entre os grupos, é preciso ter um amostra com dois anos de dados, uma anterior e outra posterior à mudança. 
+
+A amostra fica dividida em quatro grupos: o grupo de controle antes e depois da mudança e o grupo de tratamento antes e depois da mudança. 
+
+Como em Wooldridge(2016), considere que $A$ seja o grupo de controle e $B$ seja o grupo de tratamento. Assim, $dB$ é igual a 1 para as observações do grupo $B$ (tratamento) e zero, caso contrário. A variável **dummy** para o segundo período é dada por $d2$, de modo que a equação passa a ser
+
+<br>
+
+$$
+y = \beta_0 + \delta_0 d2 + \beta_1 dB + \delta_1 d2 dB + \text{outros fatores}
+\tag{12}
+$$ 
+<br>
+
+onde $y$ é a variável de interesse, $\delta_1$ vai medir o efeito da decisão ou do evento exógeno;
+
+Sem outros fatores, $\hat{\delta}_1$ será o estimador de diferenciamento:
+
+$$
+\hat{\delta_1} = (\bar{y_{2,B}} - \bar{y_{2,A}}) - (\bar{y_{1,B}} - \bar{y_{1,A}})
+$$
+
+<br>
+
+## Análise de Dados em Painel de Dois Períodos
+
+<br>
+
+É o tipo mais simples de dados em painel: um corte transversal **dos mesmos** indivíduos de dois períodos. Para ilustrar, considere, por exemplo, o arquivo ``crime2.csv``, disponibilizado por Wooldridge(2016), que contém, entre outras coisas, dados sobre taxas de criminalidade e de desemprego de 46 cidades para os anos de 1982 e 1987;
+
+Pode-se fazer um regressão simples da taxa de criminalidade ``crmrte`` com a taxa de desemprego ``unem`` para o ano de 1987, como abaixo, mas a mesma terá uma série de problemas.
+
+<br>
+
+```{r aula12_8, warning=FALSE, message=FALSE}
+data(crime2, package='wooldridge')
+crime2 <- crime2
+
+#Modelo de regressao simples para 1987
+reg4 <- lm(crmrte~unem, data=crime2, subset=(year==87))
+summary(reg4)
+```
+
+<br>
+
+Um formato de dados em painel separa os fatores não observados que afetam a variável dependente em dois tipos: os que são constantes e os que variam ao longo do tempo. Como exposto em Wooldridge(2016), seja $i$ a unidade de corte transversal e $t$ o período de tempo. Pode-se escrever um modelo com uma única variável explicativa como 
+
+<br>
+
+$$ 
+y_{it} = \beta_0 + \delta_0 d2_t + \beta_1 x_{it} + a_i + u_{it}, \quad t = 1,2. 
+\tag{13} 
+$$ 
+
+<br>
+
+Onde $y_{it}$ é o indivíduo (pessoa, empresa, país, indústria, etc.) $i$ no período $t$. A variável $d2$ é uma *dummy* igual a zero quando $t=1$ e 1 quando $t=2$. 
+
+Nessa equação, o intercepto em $t=1$ é $\beta_0$ e $\beta_0 + \delta_0$ quando $t=2$. A variável $a_i$ captura os **fatores não observados**, constantes no tempo, que afetam $y_{it}$. Ela é fundamental para se definir o modelo dado pela equação (12), chamado de **modelo de efeitos fixos**. Por fim, $u_{it}$ representa os fatores não observados que mudam ao longo do tempo e afetam $y_{it}$, chamado de **erro idiossincrático**. 
+
+Um modelo simples de efeitos fixos da taxa de criminalidade de uma cidade americana nos anos de 1982 e 1987 pode ser representado como 
+
+<br>
+
+$$
+\text{crmrte}_{it} = \beta_0 + \delta_0 \text{d87}_t + \beta_1 \text{unem}_{it} + a_i + u_{it}
+\tag{14} 
+$$ 
+<br>
+
+onde $\text{d87}_t$ é uma variável *dummy* para o ano de 1987. Dado que $i$ refere-se as cidades distintas, $a_i$ pode ser interpretada como *efeito fixo da cidade*, representando todos os fatores que afetam a taxa de criminalidade da cidade $i$ que não mudam ao longo do tempo. 
+
+Existem dificuldades para se estimar (14). Se considerar a estratégia de simplesmente agrupar os dois anos de dados, estimando (14) por MQO, os parâmetros podem ser inconsistentes e viesados. Isso porque não é possível garantir que $a_i$ seja não correlacionado com $x_{it}$. Para ilustrar, estima-se (14) abaixo, supondo que $a_i$ esteja no termo de erro, que passa a ser $v_{it} = a_i + u_{it}$;
+
+<br>
+
+```{r aula12_9, warning=FALSE, message=FALSE}
+#Modelo de regressao simples para 1987
+reg5 <- lm(crmrte~d87+unem, data=crime2, subset=(year==87))
+summary(reg5)
+```
+<br>
+
+O uso do MQO agrupado não muda praticamente nada o cenário, dado que, na prática, não foi resolvido o *problema de variável omitida*, $a_i$ está no termo de erro. 
+ 
+Como observa Wooldridge(2016), na maioria das aplicações, a principal razão para coletar dados em painel é considerar que $a_i$ seja correlacionado com $x_{it}$. Para obter isso, basta diferenciar os dados ao longo dos dois períodos. Assim, para uma observação $i$ de corte transversal,  
+
+$$
+y_{i2} = (\beta_0 + \delta_0) + \beta_1 x_{i2} + a_i + u_{i2} \quad \text{para} \quad t=2 
+$$
+$$
+y_{i1} = \beta_0 + \beta_1 x_{i1} + a_i + u_{i1} \quad \text{para} \quad t=1. 
+$$ 
+<br>
+
+Subtraindo a segunda da primeira equação, chega-se 
+
+<br>
+
+$$
+(y_{i2} - y_{i1}) = \delta_0 + \beta_1(x_{i2} - x_{i1}) + (u_{i2} - u_{i1})
+$$ 
+
+<br>
+
+Ou simplesmente 
+
+<br>
+$$
+\Delta y_i = \delta_0 + \beta_1 \Delta x_i + \Delta u_i, 
+\tag{15} 
+$$ 
+
+<br>
+
+onde $\Delta$ representa a mudança de $t=1$ para $t=2$. 
+<br>
+
+O efeito não observado $a_i$ desaparece, bem como o intercepto passa a ser a \emph{mudança no intercepto de $t=1$ para $t=2$}. A equação (15) é chamada de **Equação de Primeiras Diferenças**;
+\bigskip
+
+O código abaixo estima (15):
+
+```{r aula12_10, warning=FALSE, message=FALSE}
+
+# Estimação da Equação de Primeiras Diferenças
+
+dcrmrte<-crime2$crmrte[crime2$year=='87']-crime2$crmrte[crime2$year=='82']
+dunem<-crime2$unem[crime2$year=='87']-crime2$unem[crime2$year=='82']
+reg6 <- lm(dcrmrte~dunem, data=crime2)
+summary(reg6)
+```
+
+Existe uma relação positiva e estatisticamente significativa entre desemprego e taxa de criminalidade. Isto é, a diferenciação com o objetivo de eliminar os *efeitos constantes no tempo* teve grande efeito nesse caso;
+
+A equação (15) explicitamente considera como as alterações na variável explicativa ao longo do tempo afetam a mudança em $y$ ao longo do mesmo período do tempo;
+
+Essa é a forma mais simples de estimar um conjunto de dados em painel para dois períodos de tempo, via mínimos quadrados ordinários. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
