@@ -1527,7 +1527,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Aula 12 - Introdução à Econometria</h1>
 <h4 class="author">João Ricardo F. de Lima</h4>
-<h4 class="date">07 de junho de 2022.</h4>
+<h4 class="date">09 de junho de 2022.</h4>
 
 </div>
 
@@ -2049,21 +2049,20 @@ ilustrar, estima-se (14) abaixo, supondo que <span class="math inline">\(a_i\)</
 ser <span class="math inline">\(v_{it} = a_i + u_{it}\)</span>;</p>
 <p><br></p>
 <pre class="r"><code>#Modelo de regressao simples para 1987
-reg5 &lt;- lm(crmrte~d87+unem, data=crime2, subset=(year==87))
+reg5 &lt;- lm(crmrte~unem, data=crime2, subset=(year==87))
 summary(reg5)</code></pre>
 <pre><code>## 
 ## Call:
-## lm(formula = crmrte ~ d87 + unem, data = crime2, subset = (year == 
+## lm(formula = crmrte ~ unem, data = crime2, subset = (year == 
 ##     87))
 ## 
 ## Residuals:
 ##    Min     1Q Median     3Q    Max 
 ## -57.55 -27.01 -10.56  18.01  79.75 
 ## 
-## Coefficients: (1 not defined because of singularities)
+## Coefficients:
 ##             Estimate Std. Error t value Pr(&gt;|t|)    
 ## (Intercept)  128.378     20.757   6.185  1.8e-07 ***
-## d87               NA         NA      NA       NA    
 ## unem          -4.161      3.416  -1.218     0.23    
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
@@ -2106,6 +2105,7 @@ de <span class="math inline">\(t=1\)</span> para <span class="math inline">\(t=2
 desaparece, bem como o intercepto passa a ser a . A equação (15) é
 chamada de <strong>Equação de Primeiras Diferenças</strong>; </p>
 <p>O código abaixo estima (15):</p>
+<p><br></p>
 <pre class="r"><code># Estimação da Equação de Primeiras Diferenças
 
 dcrmrte&lt;-crime2$crmrte[crime2$year==&#39;87&#39;]-crime2$crmrte[crime2$year==&#39;82&#39;]
@@ -2130,6 +2130,7 @@ summary(reg6)</code></pre>
 ## Residual standard error: 20.05 on 44 degrees of freedom
 ## Multiple R-squared:  0.1267, Adjusted R-squared:  0.1069 
 ## F-statistic: 6.384 on 1 and 44 DF,  p-value: 0.01519</code></pre>
+<p><br></p>
 <p>Existe uma relação positiva e estatisticamente significativa entre
 desemprego e taxa de criminalidade. Isto é, a diferenciação com o
 objetivo de eliminar os <em>efeitos constantes no tempo</em> teve grande
@@ -2138,6 +2139,891 @@ efeito nesse caso;</p>
 variável explicativa ao longo do tempo afetam a mudança em <span class="math inline">\(y\)</span> ao longo do mesmo período do tempo;</p>
 <p>Essa é a forma mais simples de estimar um conjunto de dados em painel
 para dois períodos de tempo, via mínimos quadrados ordinários.</p>
+<pre class="r"><code># Organização dos dados em Painel
+library(plm)
+
+crime2.p &lt;- pdata.frame(crime2, index=46)
+# Cálculo manual da primeira diferença
+crime2.p$dcrmrte &lt;- diff(crime2.p$crmrte)
+crime2.p$dunem   &lt;- diff(crime2.p$unem)
+# Estimando o modelo com a função lm sobre as primeiras diferenças
+coeftest(lm(dcrmrte~dunem, data=crime2.p))</code></pre>
+<pre><code>## 
+## t test of coefficients:
+## 
+##             Estimate Std. Error t value Pr(&gt;|t|)   
+## (Intercept) 15.40220    4.70212  3.2756  0.00206 **
+## dunem        2.21800    0.87787  2.5266  0.01519 * 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code># Estimando o modelo com a função plm sobre os dados originais
+# Observe que a interpretação muda completamente.
+coeftest(plm(crmrte~unem, data=crime2.p, model=&quot;fd&quot;))</code></pre>
+<pre><code>## 
+## t test of coefficients:
+## 
+##             Estimate Std. Error t value Pr(&gt;|t|)   
+## (Intercept) 15.40220    4.70212  3.2756  0.00206 **
+## unem         2.21800    0.87787  2.5266  0.01519 * 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p><br></p>
+</div>
+<div id="a-organização-dos-dados-em-painel-no-r" class="section level2" number="1.8">
+<h2><span class="header-section-number">1.8</span> A Organização dos
+Dados em Painel no R</h2>
+<p><br></p>
+<p>Para os cálculos utilizados em dados em painel, se deve ter certeza
+que o conjunto de dados é sistematicamente organizado e que as rotinas
+de estimação <em>compreendem</em> essa estrutura de dados. Usualmente,
+um conjunto de dados em painel vem em uma forma longa onde cada
+<strong>linha</strong> dos dados corresponde a uma combinação de <span class="math inline">\(i\)</span> e <span class="math inline">\(t\)</span>. É necessário definir, então, quais
+observações se pertencem ao introduzir um indexador para a unidade de
+corte transversal e também para o tempo <span class="math inline">\(t\)</span>;</p>
+<p>O painel podem ser longo (long panel) ou curto (short panel). No
+painel longo o N de cortes transversais é menor do que o T da série
+temporal. Se N for maior que T, se tem um painel curto.</p>
+<p>No <strong>R</strong>, o pacote <code>plm</code> é uma coleção
+compreensiva de funções criadas para lidar com conjuntos de dados em
+painel. Semelhantemente à especificação de dados de séries temporais,
+oferece uma estrutura de dados nomeada como <code>pdata.frame</code>.
+Essencialmente corresponde a um <code>data.frame</code> padrão, mas com
+atributos adicionadas que descrevem indivíduos e dimensões
+temporais.</p>
+<p>Considere uma base de dados padrão nomeado como <code>crime4</code>.
+Ela inclui um variável <code>county</code> indicando a unidade de corte
+transversal e uma variável <code>year</code> indicando o tempo. Assim,
+cria-se o data frame de painel com a função.</p>
+<p><br></p>
+<pre class="r"><code># Organização dos dados em Painel
+
+data(crime4, package=&#39;wooldridge&#39;)
+crime4&lt;-crime4
+
+summary(crime4[,c(1:5)])</code></pre>
+<pre><code>##      county           year        crmrte             prbarr       
+##  Min.   :  1.0   Min.   :81   Min.   :0.001812   Min.   :0.05882  
+##  1st Qu.: 51.0   1st Qu.:82   1st Qu.:0.018352   1st Qu.:0.21790  
+##  Median :103.0   Median :84   Median :0.028441   Median :0.27824  
+##  Mean   :100.6   Mean   :84   Mean   :0.031588   Mean   :0.30737  
+##  3rd Qu.:151.0   3rd Qu.:86   3rd Qu.:0.038406   3rd Qu.:0.35252  
+##  Max.   :197.0   Max.   :87   Max.   :0.163835   Max.   :2.75000  
+##     prbconv        
+##  Min.   : 0.06838  
+##  1st Qu.: 0.34769  
+##  Median : 0.47437  
+##  Mean   : 0.68862  
+##  3rd Qu.: 0.63560  
+##  Max.   :37.00000</code></pre>
+<pre class="r"><code>crime4.p &lt;- pdata.frame(crime4, index=c(&quot;county&quot;,&quot;year&quot;))</code></pre>
+<p><br></p>
+<p>Caso se tenha um <strong>painel balanceado</strong>, (isto é, com o
+mesmo número de observações <span class="math inline">\(T\)</span> para
+cada <strong>indivíduo</strong> <span class="math inline">\(i =
+1,..,n\)</span>), e as observações forem primeiro ordenadas por <span class="math inline">\(i\)</span> e depois por <span class="math inline">\(t\)</span>, pode-se escrever como abaixo
+(corresponde a um <strong>painel balanceado</strong> de 46 cidades,
+devidamente ordenado. O código abaixo importa e trata o conjunto de
+dados):</p>
+<p><br></p>
+<pre class="r"><code>crime2.p &lt;- pdata.frame(crime2, index=46)
+
+# Verificando a dimensão
+pdim(crime2.p)</code></pre>
+<pre><code>## Balanced Panel: n = 46, T = 2, N = 92</code></pre>
+<p><br></p>
+<p>Um painel balanceado com 46 cidades dispostas em dois períodos,
+correspondendo assim a 92 observações. Nesse caso, são geradas novas
+variáveis <strong>id</strong> e <strong>time</strong> como indexadores.
+Uma vez que se tenha definido o conjunto de dados, pode-se ainda checar
+as dimensões com a função <code>pdim(crime2.p)</code>;</p>
+<p>Ela irá reportar se o painel é balanceado, o número de <span class="math inline">\(n\)</span> unidades de corte transversal, o número
+de <span class="math inline">\(T\)</span> unidades de tempo e o total de
+observações (o que será <span class="math inline">\(n*T\)</span> em
+painéis balanceados).</p>
+<p><br></p>
+</div>
+<div id="o-modelo-de-efeitos-fixos" class="section level2" number="1.9">
+<h2><span class="header-section-number">1.9</span> O Modelo de Efeitos
+Fixos</h2>
+<p><br></p>
+<p>O estimador de primeira diferença é apenas uma das muita maneiras de
+eliminar o efeito fixo, <span class="math inline">\(a_t\)</span>. Um
+outro método, que pode funcionar melhor, é chamado de
+<strong>transformação ou modelo de efeitos fixos</strong></p>
+<p><br></p>
+<p><span class="math display">\[
+y_{it} = \beta_1 x_{it} + a_i + u_{it}, \quad t = 1,2,...,T.
+\tag{16}
+\]</span></p>
+<p><br></p>
+<p>De modo que para cada <span class="math inline">\(i\)</span>, se
+calcule a média dessa equação ao longo do tempo</p>
+<p><br></p>
+<p><span class="math display">\[
+\bar{y}_i = \beta_1 \bar{x}_i + a_i + \bar{u}_i
+\tag{17}
+\]</span></p>
+<p><br></p>
+<p>em que <span class="math inline">\(\bar{y}_i = T^{-1} \sum_{t=1}^{T}
+y_{it}\)</span>, e assim por diante.</p>
+<p>Como <span class="math inline">\(a_i\)</span> é fixo ao longo do
+tempo, ele aparece tanto em (16) quanto em (17). Assim, ao se subtrair
+uma da outra, para cada <span class="math inline">\(t\)</span>, tem-se
+<br></p>
+<p><span class="math display">\[
+\ddot{y}_{it} = \beta_1 \ddot{x}_it +\ddot{u}_it , \quad t = 1,2,...,T,
+\tag{18}
+\]</span> <br></p>
+<p>onde <span class="math inline">\(\ddot{y}_{it} = y_{it} -
+\bar{y}\)</span> são <em>dados centrados na média</em> de <span class="math inline">\(y\)</span> e <span class="math inline">\(\ddot{x}_{it}\)</span> e <span class="math inline">\(\ddot{u}_{it}\)</span> são obtidos da mesma
+forma.</p>
+<p>Como se pode notar, o efeito não observado <span class="math inline">\(a_i\)</span> desapareceu em (18), de modo que é
+possível estimá-la por um MQO agrupado. Um estimador MQO, por suposto,
+que se baseia em variáveis temporais reduzidas é chamado de
+<strong>estimador de efeitos fixos</strong> ou <strong>estimador
+intragrupos</strong>.</p>
+<p>Pode-se generalizar (18) começando pela equação de efeitos não
+observados original</p>
+<p><br></p>
+<p><span class="math display">\[
+y_{it} = \beta_1 x_{it1} + \beta_2 x_{it2} + ... + \beta_k x_{itk} + a_i
++ u_{it}, \quad t = 1,2,...,T,
+\tag{19}
+\]</span> <br></p>
+<p>de modo a obter</p>
+<p><span class="math display">\[
+\ddot{y}_{it} = \beta_1 \ddot{x}_{it1} + \beta_2 \ddot{x}_{it2} + ... +
+\beta_k \ddot{x}_{itk} + \ddot{u}_{it}, \quad t = 1,2,...,T,
+\tag{20}
+\]</span> <br></p>
+<p>que pode ser estimado pelo MQO agrupado.</p>
+<p>O estimador de efeitos fixos é não viesado considerando que o erro
+<span class="math inline">\(u_{it}\)</span> seja não correlacionado com
+cada variável explicativa ao longo de todos os períodos de tempo;</p>
+<p>O estimador de efeitos fixos leva em consideração uma correlação
+entre <span class="math inline">\(a_i\)</span> e as variáveis
+explicativas em qualquer período de tempo. Assim, qualquer variável
+explicativa que seja constante no tempo para todo <em>i</em> é removida
+pela transformação de efeitos fixos: <span class="math inline">\(\ddot{x}_{it}=0\)</span>, para todo <em>i</em> e
+<em>t</em>, se <span class="math inline">\(x_{it}\)</span> for constante
+ao longo de <em>t</em>.</p>
+<p>Os erros <span class="math inline">\(u_{it}\)</span> devem ser
+homocedásticos e serialmente não correlacionados.</p>
+<p>O conjunto de dados <code>wagenpan.csv</code> foi utilizado para um
+estudo sobre sindicalismo e os determinantes das taxas de salários para
+homens jovens;</p>
+<p>Algumas variáveis, como experiência, estado civil e filiação sindical
+mudam ao longo do tempo. Outras variáveis, como raça e educação não
+mudam;</p>
+<p>Assim, usando efeitos fixos, não é possível incluir essas variáveis
+na equação. O que pode ser feito é incluir interações da educação com
+<code>dummies</code> anuais, de modo a testar se o retorno da educação
+foi constante ao longo do tempo.</p>
+<p><br></p>
+<pre class="r"><code>#Modelo de efeitos Fixos
+data(wagepan, package=&#39;wooldridge&#39;)
+wagenpan &lt;- wagepan
+
+#Criar o data frame
+wagepan.p &lt;- pdata.frame(wagepan, index=c(&quot;nr&quot;,&quot;year&quot;) )
+pdim(wagepan.p)</code></pre>
+<pre><code>## Balanced Panel: n = 545, T = 8, N = 4360</code></pre>
+<pre class="r"><code># Estimar o modelo de efeitos fixos
+summary(plm(lwage~married+union+factor(year)*educ,
+            data=wagepan.p, model=&quot;within&quot;))</code></pre>
+<pre><code>## Oneway (individual) effect Within Model
+## 
+## Call:
+## plm(formula = lwage ~ married + union + factor(year) * educ, 
+##     data = wagepan.p, model = &quot;within&quot;)
+## 
+## Balanced Panel: n = 545, T = 8, N = 4360
+## 
+## Residuals:
+##      Min.   1st Qu.    Median   3rd Qu.      Max. 
+## -4.152111 -0.125630  0.010897  0.160800  1.483401 
+## 
+## Coefficients:
+##                         Estimate Std. Error t-value  Pr(&gt;|t|)    
+## married                0.0548205  0.0184126  2.9773  0.002926 ** 
+## union                  0.0829785  0.0194461  4.2671 2.029e-05 ***
+## factor(year)1981      -0.0224158  0.1458885 -0.1537  0.877893    
+## factor(year)1982      -0.0057611  0.1458558 -0.0395  0.968495    
+## factor(year)1983       0.0104297  0.1458579  0.0715  0.942999    
+## factor(year)1984       0.0843743  0.1458518  0.5785  0.562965    
+## factor(year)1985       0.0497253  0.1458602  0.3409  0.733190    
+## factor(year)1986       0.0656064  0.1458917  0.4497  0.652958    
+## factor(year)1987       0.0904448  0.1458505  0.6201  0.535216    
+## factor(year)1981:educ  0.0115854  0.0122625  0.9448  0.344827    
+## factor(year)1982:educ  0.0147905  0.0122635  1.2061  0.227872    
+## factor(year)1983:educ  0.0171182  0.0122633  1.3959  0.162830    
+## factor(year)1984:educ  0.0165839  0.0122657  1.3521  0.176437    
+## factor(year)1985:educ  0.0237085  0.0122738  1.9316  0.053479 .  
+## factor(year)1986:educ  0.0274123  0.0122740  2.2334  0.025583 *  
+## factor(year)1987:educ  0.0304332  0.0122723  2.4798  0.013188 *  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Total Sum of Squares:    572.05
+## Residual Sum of Squares: 474.35
+## R-Squared:      0.1708
+## Adj. R-Squared: 0.048567
+## F-statistic: 48.9069 on 16 and 3799 DF, p-value: &lt; 2.22e-16</code></pre>
+<pre class="r"><code>#Pode-se verificar que o retorno da educação é cerca de 
+#três pontos percentuais maior em 1987 do que no ano-base, 
+#que é 1980.</code></pre>
+<p><br></p>
+<p>Observe que foi colocado no argumento <strong>model</strong> a opção
+<strong>within</strong>, que corresponde à subtração da média de uma
+observação <span class="math inline">\(x_{it}\)</span>.</p>
+<p><br></p>
+</div>
+<div id="efeitos-fixos-ou-primeira-diferença" class="section level2" number="1.10">
+<h2><span class="header-section-number">1.10</span> Efeitos Fixos ou
+Primeira Diferença?</h2>
+<p><br></p>
+<p>Se T=2, as estimativas por ambos métodos são as mesmas, assim como os
+testes estatísticos. Então, é indiferente escolher entre EF ou PD.</p>
+<p>Se <span class="math inline">\(T \geq 3\)</span>, os estimadores EF e
+PD não são os mesmos. Ambos são não viesados e consistentes. Para N
+grande e T pequeno, a escolha vai depender da eficiência dos
+estimadores, determinado pela correlação serial nos resíduos, <span class="math inline">\(u_{it}\)</span>.</p>
+<p>Se os resíduos forem não correlacionados, os estimadores de EF são
+mais eficientes em comparação com PD. Se forem, por exemplo, um passeio
+aleatório, a PD será melhor. Se houver correlação positiva mas não for
+um passeio aleatório, é mais difícil comparar a eficiência de EF e PD.
+Se a correlação for negativa, melhor EF.</p>
+<p><br></p>
+</div>
+<div id="o-modelo-de-efeitos-aleatórios" class="section level2" number="1.11">
+<h2><span class="header-section-number">1.11</span> O Modelo de Efeitos
+Aleatórios</h2>
+<p><br></p>
+<p>Considere o modelo já visto</p>
+<p><br></p>
+<p><span class="math display">\[
+y_{it} = \beta_0 + \beta_1 x_{it1} + ... + \beta_k x_{itk} +  a_i +
+u_{it}, \tag{21}  
+\]</span> <br></p>
+<p>em que foi incluído um intercepto de modo que se possa presumir que o
+efeito não observado, <span class="math inline">\(a_i\)</span>, tem
+média zero.</p>
+<p>Ao utilizar efeitos fixos ou primeira diferença, o objetivo era
+eliminar <span class="math inline">\(a_i\)</span>, dado que o mesmo
+poderia ser correlacionado com as variáveis explicativas;</p>
+<p>Entretanto, pode-se supor que <span class="math inline">\(a_i\)</span> é não correlacionado com cada
+variável explicativa em todos os períodos de tempo. Nesse caso
+específico, os estimadores são ineficientes se <span class="math inline">\(a_i\)</span> for eliminado.</p>
+<p>Nesse contexto, a equação (21) poderá se tornar um <strong>modelo de
+efeitos aleatórios</strong> quando se supor que o efeito não observado
+<span class="math inline">\(a_i\)</span> é não correlacionado com cada
+variável explicativa em todos os períodos de tempo, isto é,</p>
+<p><br></p>
+<p><span class="math display">\[
+Cov(x_{itj}, a_i) = 0, \quad t = 1,2,...,T; \quad j = 1,2,...,k.
+\tag{22}
+\]</span> <br></p>
+<p>Sob (22), como estimar <span class="math inline">\(\beta_j\)</span>?
+Se for considerado que <span class="math inline">\(a_i\)</span> não é
+correlacionado com o vetor de variáveis explicativas, o vetor <span class="math inline">\(\beta_j\)</span> poderá ser consistentemente
+estimado com o uso de um único <em>corte transversal</em>. Isso,
+entretanto, implica em desconsiderar informações dos demais períodos de
+tempo.</p>
+<p>É possível ainda utilizar os dados em um procedimento de MQO
+agrupado. Isso também produzirá estimadores consistentes, entretanto irá
+ignorar um ponto importante. Isto porque, se for definido o termo de
+erro composto como <span class="math inline">\(v_{it} = a_i +
+u_{it}\)</span>, (21) poderá ser escrita como</p>
+<p><br></p>
+<p><span class="math display">\[
+y_{it} = \beta_0 + \beta_1 x_{it1} + ... + \beta_k x_{itk} + v_{it}.
+\tag{23}
+\]</span> <br></p>
+<p>Como <span class="math inline">\(a_i\)</span> é o erro composto em
+cada período de tempo, os <span class="math inline">\(v_{it}\)</span>
+serão serialmente correlacionados ao longo do tempo. Sob as hipóteses de
+efeitos aleatórios,</p>
+<p><br></p>
+<p><span class="math display">\[
+Corr(v_{it}, v_{is}) = \frac{\sigma_a^2}{\sigma_a^2 + \sigma_u^2}, \quad
+t \neq s,
+\tag{24}
+\]</span> <br></p>
+<p>onde <span class="math inline">\(\sigma_a^2\)</span> = Var(a_i)$ e
+<span class="math inline">\(\sigma_u^2 = Var(u_{it})\)</span></p>
+<p>Essa correlação serial positiva no termo de erro pode ser
+substancial. Dado que os erros-padrão do estimador de MQO agrupado
+normalmente ignoram essa correlação, eles serão incorretos, assim como
+as estatísticas de teste. De modo a resolver esse problema, pode-se
+utilizar mínimos quadrados generalizados (MQG). Considere</p>
+<p><br></p>
+<p><span class="math display">\[
+\theta = 1 - \left [ \sigma_u^2/(\sigma_u^2 + T \sigma_a^2) \right
+]^{\frac{1}{2}}
+\tag{25}
+\]</span> <br></p>
+<p>que estará entre zero e um. A seguir, a equação transformada
+resultará em</p>
+<p><br></p>
+<p><span class="math display">\[
+y_{it} - \theta \bar{y}_i = \beta_0 (1 - \theta) + \beta_1 (x_{it1} -
+\theta \bar{x}_{i1}) + ... + \beta_k (x_{itk} - \theta \bar{x}_{ik}) +
+(v_{it} - \theta \bar{v}_i)
+\tag{26}
+\]</span> <br></p>
+<p>de modo que a transformação de efeitos aleatórios irá subtrair uma
+fração daquela média temporal, sendo que esta fração irá depender de
+<span class="math inline">\(\sigma_{u}^2\)</span>, _a^2$ e do número de
+períodos de tempo <span class="math inline">\(T\)</span>.</p>
+<p>O estimador MQG é simplesmente o estimador MQO agrupado de (26). A
+transformação contida em (26) considera variáveis explicativas que sejam
+constantes ao longo do tempo. Isto porque o estimador de efeitos
+aleatórios presume que o efeito não observado é não correlacionado com
+todas as variáveis explicativas, sejam elas fixas ao longo do tempo ou
+não;</p>
+<p>Assim, por exemplo, em uma equação de salário, pode-se incluir uma
+variável como educação, mesmo que ela não se altere ao longo do
+tempo.</p>
+<p>Na prática, o parâmetro <span class="math inline">\(\theta\)</span>
+nunca é conhecido, devendo ser estimado.</p>
+<p>Em geral, para se estimar <span class="math inline">\(\hat{\theta}\)</span> se faz</p>
+<p><br></p>
+<p><span class="math display">\[
+\hat{\theta}=1-\left
+\{\frac{1}{[1+T(\frac{\hat{\sigma}^2_a}{\hat{\sigma}^2_u})]}\right\}^\frac{1}{2}
+\]</span> <br></p>
+<p>em que <span class="math inline">\(\hat{\sigma}^2_a\)</span> e <span class="math inline">\(\hat{\sigma}^2_u\)</span> são estimadores
+consistentes de <span class="math inline">\(\sigma^2_a\)</span> e <span class="math inline">\(\sigma^2_u\)</span>;</p>
+<p>Estes estimadores podem estar baseados nos resíduos do MQO agrupado
+ou EF.</p>
+<p>Uma possibilidade é que <br> <span class="math display">\[
+\hat{\sigma}^2_a=\left [\frac{NT(T-1)}{2-(k+1)}\right]^{-1}
+\sum_{i=1}^{N}\sum_{t=1}^{T-1}\sum_{s=t+1}^{T} \hat{v}_{it}\hat{v}_{is}
+\tag{28}
+\]</span> <br></p>
+<p>em que os <span class="math inline">\(\hat{v}_{it}\)</span> são os
+resíduos de estimar {23} pelo MQO agrupado;</p>
+<p>Em seguida pode-se estimar <span class="math inline">\(\sigma^2_u\)</span> usando <span class="math inline">\(\hat{\sigma}^2_u=\hat{\sigma}^2_v-\hat{\sigma}^2_a\)</span>
+em que <span class="math inline">\(\hat{\sigma}^2_v\)</span> é o
+quadrado do erro padrão da regressão pelo MQO agrupado;</p>
+<p>O estimador MQG factível que usa <span class="math inline">\(\hat{\theta}\)</span> em lugar de <span class="math inline">\(\theta\)</span> é chamado de <strong>estimador de
+efeitos aleatórios</strong>. Sob pressupostos de ausência de
+multicolinearidade, <span class="math inline">\(E(a_i|X_i)=\beta_0\)</span> e <span class="math inline">\(Var(a_i|X_i)=\sigma^2_a\)</span> o estimador é não
+viesado, consistente, distribuído normalmente e assimptoticamente
+conforme N fica maior com T fixo.</p>
+<p>A equação (26) permite relacionar o estimado de EA com MQO agrupado e
+EF.<br />
+Se <span class="math inline">\(\hat{\theta}\)</span> estiver próximo de
+zero, as estimativas de EA estarão próximas das estimativas do MQO
+agrupado, sendo o caso quando <span class="math inline">\(a_i\)</span>
+tem pouca importância. Se <span class="math inline">\(\hat{\sigma}^2_a\)</span> for grande em relação a
+<span class="math inline">\(\hat{\sigma}^2_u\)</span>, <span class="math inline">\(\hat{\theta}\)</span> vai estar mais próximo de 1.
+Conforme T fica maior, <span class="math inline">\(\hat{\theta}\)</span>
+tende a um, fazendo com que EA e EF sejam semelhantes.</p>
+<p>O modelo abaixo estima uma equação para os salários do homens, com as
+variáveis explicativas sendo educação, raça, experiência, estado civil e
+se é sindicalizado. A regressão também contém um conjunto de dummies
+anuais; O modelo utilizado é de dados em painel com efeitos aleatórios,
+dado que foi colocado no argumento <code>model</code> a opção
+<em>random</em>.</p>
+<p><br></p>
+<pre class="r"><code>#Estimar o modelo de efeitos Aleatórios
+# Estimar o modelo de efeitos aleatórios
+wagepan.p$yr &lt;- factor(wagepan.p$year)
+pvar(wagepan.p)</code></pre>
+<pre><code>## no time variation:       nr black hisp educ 
+## no individual variation: year d81 d82 d83 d84 d85 d86 d87 yr</code></pre>
+<pre class="r"><code>summary(plm(lwage~educ+black+hisp+exper+I(exper^2)+married+union+yr, 
+             data=wagepan.p, model=&quot;random&quot;))</code></pre>
+<pre><code>## Oneway (individual) effect Random Effect Model 
+##    (Swamy-Arora&#39;s transformation)
+## 
+## Call:
+## plm(formula = lwage ~ educ + black + hisp + exper + I(exper^2) + 
+##     married + union + yr, data = wagepan.p, model = &quot;random&quot;)
+## 
+## Balanced Panel: n = 545, T = 8, N = 4360
+## 
+## Effects:
+##                  var std.dev share
+## idiosyncratic 0.1232  0.3510 0.539
+## individual    0.1054  0.3246 0.461
+## theta: 0.6429
+## 
+## Residuals:
+##      Min.   1st Qu.    Median   3rd Qu.      Max. 
+## -4.567162 -0.144197  0.022999  0.189966  1.551817 
+## 
+## Coefficients:
+##               Estimate Std. Error z-value  Pr(&gt;|z|)    
+## (Intercept)  0.0235864  0.1506683  0.1565 0.8756034    
+## educ         0.0918763  0.0106597  8.6190 &lt; 2.2e-16 ***
+## black       -0.1393767  0.0477228 -2.9205 0.0034942 ** 
+## hisp         0.0217317  0.0426063  0.5101 0.6100100    
+## exper        0.1057545  0.0153668  6.8820 5.902e-12 ***
+## I(exper^2)  -0.0047239  0.0006895 -6.8513 7.319e-12 ***
+## married      0.0639860  0.0167742  3.8145 0.0001364 ***
+## union        0.1061344  0.0178539  5.9446 2.771e-09 ***
+## yr1981       0.0404620  0.0246946  1.6385 0.1013184    
+## yr1982       0.0309212  0.0323416  0.9561 0.3390320    
+## yr1983       0.0202806  0.0415820  0.4877 0.6257435    
+## yr1984       0.0431187  0.0513163  0.8403 0.4007666    
+## yr1985       0.0578155  0.0612323  0.9442 0.3450682    
+## yr1986       0.0919476  0.0712293  1.2909 0.1967494    
+## yr1987       0.1349289  0.0813135  1.6594 0.0970420 .  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Total Sum of Squares:    656.78
+## Residual Sum of Squares: 538.16
+## R-Squared:      0.18062
+## Adj. R-Squared: 0.17798
+## Chisq: 957.774 on 14 DF, p-value: &lt; 2.22e-16</code></pre>
+<p><br></p>
+<p>O salário dos homens em 1987 é cerca de 14,45% mais elevado do que no
+ano base (1980). Participar de sindicato ou ser casado aumentam o
+salarios em cerca de 11,2% e 6,61%, respecticamente. A estimativa de
+<span class="math inline">\(\theta\)</span> é 0,6429.</p>
+</div>
+<div id="o-teste-de-hausman" class="section level2" number="1.12">
+<h2><span class="header-section-number">1.12</span> O Teste de
+Hausman</h2>
+<p>O teste de Hausman (1978) testa o vetor de coeficientes
+<strong>b</strong> do modelo de efeitos fixos contra o vetor <span class="math inline">\(\hat{\beta}\)</span> do modelo de efeitos
+aleatórios, verificando a ortogonalidade dos efeitos comuns com os
+regressores;</p>
+<p>O teste é baseado na ideia de que, na ausência de correlação sob
+<span class="math inline">\(H_0\)</span>, tanto o modelo de efeitos
+fixos quanto o de efeitos aleatórios são consistentes, mas o modelo de
+efeitos fixos é ineficiente;</p>
+<p>Então, sob a hipótese nula de que o modelo de efeitos aleatórios é o
+mais adequado, formula-se a seguinte estatística de teste</p>
+<p><br></p>
+<p><span class="math display">\[
+H = (b-\hat{\beta})&#39;(var[b]-var[\hat{\beta}])^{-1}(b-\hat{\beta})
+\sim \chi^2(k-1)
+\tag{29}
+\]</span> <br></p>
+<p>No <strong>R</strong>, o teste é o <code>phtest</code>.</p>
+<p><br></p>
+<pre class="r"><code>#Testes de Hausman
+#HO: Efeitos aleatorios e melhor
+#basicamente testa se os erros sao correlacionados
+#com os regressores e a H0 é que nao sao.
+
+ffe &lt;- plm(lwage~married+union+factor(year)*educ,
+            data=wagepan.p, model=&quot;within&quot;)
+fre &lt;- plm(lwage~educ+black+hisp+exper+I(exper^2)+married+union+yr, 
+             data=wagepan.p, model=&quot;random&quot;)
+
+phtest(ffe, fre)</code></pre>
+<pre><code>## 
+##  Hausman Test
+## 
+## data:  lwage ~ married + union + factor(year) * educ
+## chisq = 10.5, df = 2, p-value = 0.005246
+## alternative hypothesis: one model is inconsistent</code></pre>
+<p><br></p>
+</div>
+<div id="demonstração-no-r-com-o-exemplo-do-livro-do-gujarati" class="section level2" number="1.13">
+<h2><span class="header-section-number">1.13</span> Demonstração no R
+com o exemplo do livro do Gujarati</h2>
+<p><br></p>
+<pre class="r"><code>#Direcionado o R para o Diretorio a ser trabalhado
+setwd(&#39;C:/Users/Joao Ricardo Lima/Dropbox/tempecon/Facape/econometria1&#39;)
+
+#Extracao dos dados Gujarati
+dados &lt;- read.csv2(&#39;painel_gujarati.csv&#39;, header=T, sep=&quot;;&quot;, dec=&quot;.&quot;)
+names(dados)[1] &lt;- c(&quot;crossid&quot;)
+
+#Regressao com dados empilhados
+regressao1 &lt;- lm(ct ~ q+lf+pf, data=dados)
+summary(regressao1)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = ct ~ q + lf + pf, data = dados)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -520654 -250270   37333  208690  849700 
+## 
+## Coefficients:
+##               Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  1.159e+06  3.606e+05   3.213  0.00185 ** 
+## q            2.026e+06  6.181e+04  32.781  &lt; 2e-16 ***
+## lf          -3.066e+06  6.963e+05  -4.403 3.06e-05 ***
+## pf           1.225e+00  1.037e-01  11.814  &lt; 2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 281600 on 86 degrees of freedom
+## Multiple R-squared:  0.9461, Adjusted R-squared:  0.9442 
+## F-statistic: 503.1 on 3 and 86 DF,  p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code>#Regressao com o uso de variaveis Dummy e Efeitos Fixos
+fixed.dum &lt;- lm(ct ~ q+lf+pf+factor(crossid)-1, data=dados)
+summary(fixed.dum)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = ct ~ q + lf + pf + factor(crossid) - 1, data = dados)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -551783 -159259    1796  137226  499296 
+## 
+## Coefficients:
+##                    Estimate Std. Error t value Pr(&gt;|t|)    
+## q                 3.319e+06  1.714e+05  19.369  &lt; 2e-16 ***
+## lf               -3.797e+06  6.138e+05  -6.187 2.37e-08 ***
+## pf                7.731e-01  9.732e-02   7.944 9.70e-12 ***
+## factor(crossid)1 -1.312e+05  3.508e+05  -0.374 0.709286    
+## factor(crossid)2  4.705e+05  3.091e+05   1.522 0.131839    
+## factor(crossid)3  1.206e+06  3.324e+05   3.628 0.000497 ***
+## factor(crossid)4  1.646e+06  3.183e+05   5.172 1.64e-06 ***
+## factor(crossid)5  1.697e+06  3.348e+05   5.069 2.48e-06 ***
+## factor(crossid)6  1.575e+06  3.073e+05   5.126 1.98e-06 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 210400 on 81 degrees of freedom
+## Multiple R-squared:  0.985,  Adjusted R-squared:  0.9834 
+## F-statistic:   593 on 9 and 81 DF,  p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code>#Configuracao como dados em painel
+pdados &lt;- pdata.frame(dados, c(&quot;crossid&quot;,&quot;dateid&quot;))
+pdados &lt;- pdata.frame(dados, index=6) #opção para painel balanceado (n=90/t=15)
+#Checar as dimensoes do painel
+pdim(pdados)</code></pre>
+<pre><code>## Balanced Panel: n = 6, T = 15, N = 90</code></pre>
+<pre class="r"><code>#Checar por variação no corte transversal e no tempo
+pvar(pdados)</code></pre>
+<pre><code>## no time variation:       crossid id 
+## no individual variation: dateid time</code></pre>
+<pre class="r"><code>#Pool Test
+#teste F de estabilidade dos coeficientes do modelo em painel. Testa a hipótese de que os coefs
+# excluindo os interceptos sao iguais.
+pooltest(ct ~ q+lf+pf, data=pdados, model=&#39;within&#39;)</code></pre>
+<pre><code>## 
+##  F statistic
+## 
+## data:  ct ~ q + lf + pf
+## F = 32.903, df1 = 15, df2 = 66, p-value &lt; 2.2e-16
+## alternative hypothesis: unstability</code></pre>
+<pre class="r"><code>#Testa a hipótese de que os coefs incluindo os interceptos sao iguais.
+pooltest(ct ~ q+lf+pf, data=pdados, model=&#39;pooling&#39;)</code></pre>
+<pre><code>## 
+##  F statistic
+## 
+## data:  ct ~ q + lf + pf
+## F = 49.882, df1 = 20, df2 = 66, p-value &lt; 2.2e-16
+## alternative hypothesis: unstability</code></pre>
+<pre class="r"><code>#Testa se não há efeitos (individual u tempo) não 
+# observados nos resíduos (ausencia de autocorrelacao residuos).
+# H0=correlação zero entre os residuos do mesmo grupo. 
+pwtest(ct ~ q+lf+pf, data=pdados, model=&#39;pooling&#39;)</code></pre>
+<pre><code>## 
+##  Wooldridge&#39;s test for unobserved individual effects
+## 
+## data:  formula
+## z = 0.6142, p-value = 0.5391
+## alternative hypothesis: unobserved effect</code></pre>
+<pre class="r"><code>#Teste para verificar conjuntamente a existencia de efeito aleatorio
+# e correlação serial. A H0 é ausencia dos dois.
+pbsytest(ct ~ q+lf+pf, data=pdados, model=&#39;pooling&#39;, test = &#39;j&#39;)</code></pre>
+<pre><code>## 
+##  Baltagi and Li AR-RE joint test - balanced panel
+## 
+## data:  formula
+## chisq = 69.181, df = 2, p-value = 9.497e-16
+## alternative hypothesis: AR(1) errors or random effects</code></pre>
+<pre class="r"><code>#Teste para verificar a existencia de 
+# correlação serial. A H0 é ausencia de correlação.
+pbsytest(ct ~ q+lf+pf, data=pdados, model=&#39;pooling&#39;)</code></pre>
+<pre><code>## 
+##  Bera, Sosa-Escudero and Yoon locally robust test - balanced panel
+## 
+## data:  formula
+## chisq = 68.568, df = 1, p-value &lt; 2.2e-16
+## alternative hypothesis: AR(1) errors sub random effects</code></pre>
+<pre class="r"><code>#Teste para verificar a existencia de efeito aleatorio
+#. A H0 é ausencia de efeito aleatório.
+pbsytest(ct ~ q+lf+pf, data=pdados, model=&#39;pooling&#39;, test = &#39;re&#39;)</code></pre>
+<pre><code>## 
+##  Bera, Sosa-Escudero and Yoon locally robust test (one-sided) - balanced
+##  panel
+## 
+## data:  formula
+## z = -2.2947, p-value = 0.9891
+## alternative hypothesis: random effects sub AR(1) errors</code></pre>
+<pre class="r"><code>#Teste para verificar a existencia de correlação serial
+# em erros sob efeitos aleatórios (AR(1) ou MA(1). 
+# A H0 é ausencia de correlação.
+pbltest(ct ~ q+lf+pf, data=pdados, model=&#39;pooling&#39;, alternative = &#39;oneside&#39;)</code></pre>
+<pre><code>## 
+##  Baltagi and Li one-sided LM test
+## 
+## data:  ct ~ q + lf + pf
+## z = 6.9485, p-value = 1.846e-12
+## alternative hypothesis: AR(1)/MA(1) errors in RE panel model</code></pre>
+<pre class="r"><code>#Uso de Funções diversas com Panel Data
+pdados$q.l &lt;- lag(pdados$q) #1 Lag
+pdados$q.d &lt;- diff(pdados$q) #1 Diff
+pdados$q.B &lt;- Between(pdados$q) #Média por Cross-Section
+pdados$q.W &lt;- Within(pdados$q) #x-x.bar
+
+#Estimacao de modelo com efeitos Fixos
+ffe &lt;- plm(ct ~ q+lf+pf, model=&quot;within&quot;, data = pdados)
+summary(ffe)</code></pre>
+<pre><code>## Oneway (individual) effect Within Model
+## 
+## Call:
+## plm(formula = ct ~ q + lf + pf, data = pdados, model = &quot;within&quot;)
+## 
+## Balanced Panel: n = 6, T = 15, N = 90
+## 
+## Residuals:
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+## -551783 -159259    1796       0  137226  499296 
+## 
+## Coefficients:
+##       Estimate  Std. Error t-value  Pr(&gt;|t|)    
+## q   3.3190e+06  1.7135e+05 19.3694 &lt; 2.2e-16 ***
+## lf -3.7974e+06  6.1377e+05 -6.1869 2.375e-08 ***
+## pf  7.7307e-01  9.7319e-02  7.9437 9.698e-12 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Total Sum of Squares:    5.0776e+13
+## Residual Sum of Squares: 3.5865e+12
+## R-Squared:      0.92937
+## Adj. R-Squared: 0.92239
+## F-statistic: 355.254 on 3 and 81 DF, p-value: &lt; 2.22e-16</code></pre>
+<pre class="r"><code>#O coeficiente estimado indica quanto ct muda ao longo do tempo
+# na media por empresa aerea, quando a variavel aumenta uma unidade 
+fixef(ffe) #mostra os seis diferentes interceptos</code></pre>
+<pre><code>##       1       2       3       4       5       6 
+## -131236  470497 1205944 1646356 1697016 1575238</code></pre>
+<pre class="r"><code>summary(fixef(ffe)) #mostra os seis diferentes interceptos com signif.</code></pre>
+<pre><code>##   Estimate Std. Error t-value  Pr(&gt;|t|)    
+## 1  -131236     350777 -0.3741 0.7092857    
+## 2   470497     309078  1.5223 0.1318389    
+## 3  1205945     332355  3.6285 0.0004975 ***
+## 4  1646356     318349  5.1716 1.644e-06 ***
+## 5  1697016     334776  5.0691 2.477e-06 ***
+## 6  1575238     307316  5.1258 1.975e-06 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>#Teste do RFE contra MqO
+#Hipotese Nula: Modelo de MqO e melhor
+pFtest(ffe, regressao1)</code></pre>
+<pre><code>## 
+##  F test for individual effects
+## 
+## data:  ct ~ q + lf + pf
+## F = 14.595, df1 = 5, df2 = 81, p-value = 3.467e-10
+## alternative hypothesis: significant effects</code></pre>
+<pre class="r"><code>#Teste de Correlação serial quando T for pequeno em 
+#Modelo de Efeito Fixo.H0: ausencia de correlacao serial
+pwartest(ffe)</code></pre>
+<pre><code>## 
+##  Wooldridge&#39;s test for serial correlation in FE panels
+## 
+## data:  ffe
+## F = 65.044, df1 = 1, df2 = 82, p-value = 5.194e-12
+## alternative hypothesis: serial correlation</code></pre>
+<pre class="r"><code>pwfdtest(ct ~ q+lf+pf, data = pdados)</code></pre>
+<pre><code>## 
+##  Wooldridge&#39;s first-difference test for serial correlation in panels
+## 
+## data:  plm.model
+## F = 26.673, df1 = 1, df2 = 76, p-value = 1.878e-06
+## alternative hypothesis: serial correlation in differenced errors</code></pre>
+<pre class="r"><code>#Estimacao de modelo com Efeitos Aleatorios
+fre &lt;- plm(ct ~ q+lf+pf, model=&quot;random&quot;, data = pdados)
+summary(fre)</code></pre>
+<pre><code>## Oneway (individual) effect Random Effect Model 
+##    (Swamy-Arora&#39;s transformation)
+## 
+## Call:
+## plm(formula = ct ~ q + lf + pf, data = pdados, model = &quot;random&quot;)
+## 
+## Balanced Panel: n = 6, T = 15, N = 90
+## 
+## Effects:
+##                     var   std.dev share
+## idiosyncratic 4.428e+10 2.104e+05 0.793
+## individual    1.154e+10 1.074e+05 0.207
+## theta: 0.5486
+## 
+## Residuals:
+##    Min. 1st Qu.  Median 3rd Qu.    Max. 
+## -535726 -238494   49890  207491  722934 
+## 
+## Coefficients:
+##                Estimate  Std. Error z-value  Pr(&gt;|z|)    
+## (Intercept)  1.0743e+06  3.7747e+05  2.8461  0.004427 ** 
+## q            2.2886e+06  1.0949e+05 20.9015 &lt; 2.2e-16 ***
+## lf          -3.0850e+06  7.2568e+05 -4.2512 2.126e-05 ***
+## pf           1.1236e+00  1.0344e-01 10.8622 &lt; 2.2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Total Sum of Squares:    6.6198e+13
+## Residual Sum of Squares: 5.8721e+12
+## R-Squared:      0.91129
+## Adj. R-Squared: 0.9082
+## Chisq: 883.501 on 3 DF, p-value: &lt; 2.22e-16</code></pre>
+<pre class="r"><code>#Os coeficientes estimados indicam o efeito medio de X sobre Y quando
+# X muda ao longo do tempo e entre as empresas aereas em uma unidade.
+
+#Testes de Hausman
+#HO: Efeitos aleatorios e melhor
+#basicamente testa se os erros sao correlacionados
+#com os regressores e a H0 é que nao sao.
+
+phtest(ffe, fre)</code></pre>
+<pre><code>## 
+##  Hausman Test
+## 
+## data:  ct ~ q + lf + pf
+## chisq = 60.87, df = 3, p-value = 3.832e-13
+## alternative hypothesis: one model is inconsistent</code></pre>
+<pre class="r"><code>#Teste de estacionariedade das series
+#Hipotese nula: os dados possuem raiz unitaria
+library(tseries)
+adf.test(pdados$ct, k=2)</code></pre>
+<pre><code>## 
+##  Augmented Dickey-Fuller Test
+## 
+## data:  pdados$ct
+## Dickey-Fuller = -3.8638, Lag order = 2, p-value = 0.01943
+## alternative hypothesis: stationary</code></pre>
+<pre class="r"><code>adf.test(pdados$lf, k=2)</code></pre>
+<pre><code>## 
+##  Augmented Dickey-Fuller Test
+## 
+## data:  pdados$lf
+## Dickey-Fuller = -3.9736, Lag order = 2, p-value = 0.01426
+## alternative hypothesis: stationary</code></pre>
+<pre class="r"><code>adf.test(pdados$pf, k=2)</code></pre>
+<pre><code>## 
+##  Augmented Dickey-Fuller Test
+## 
+## data:  pdados$pf
+## Dickey-Fuller = -5.0785, Lag order = 2, p-value = 0.01
+## alternative hypothesis: stationary</code></pre>
+<pre class="r"><code>adf.test(pdados$q, k=2)</code></pre>
+<pre><code>## 
+##  Augmented Dickey-Fuller Test
+## 
+## data:  pdados$q
+## Dickey-Fuller = -2.9823, Lag order = 2, p-value = 0.1717
+## alternative hypothesis: stationary</code></pre>
+<pre class="r"><code>#Teste para Correlacao Serial
+#Hipotese Nula: ausencia de autocorrelacao serial
+pbgtest(ffe, order=2)</code></pre>
+<pre><code>## 
+##  Breusch-Godfrey/Wooldridge test for serial correlation in panel models
+## 
+## data:  ct ~ q + lf + pf
+## chisq = 41.882, df = 2, p-value = 8.043e-10
+## alternative hypothesis: serial correlation in idiosyncratic errors</code></pre>
+<pre class="r"><code>#Teste de Breusch-Pagan de homocedasticidade
+#Hipotese nula eh homocedasticidade
+bptest(ct ~ q+lf+pf+factor(crossid), data=dados, studentize=F)</code></pre>
+<pre><code>## 
+##  Breusch-Pagan test
+## 
+## data:  ct ~ q + lf + pf + factor(crossid)
+## BP = 37.83, df = 8, p-value = 8.092e-06</code></pre>
+<pre class="r"><code>#Solucao de problema de Heterocedasticidade
+#Estimacao com erros padroes robustos Modelo Efeitos Fixos
+coeftest(ffe) #resultado sem correcao</code></pre>
+<pre><code>## 
+## t test of coefficients:
+## 
+##       Estimate  Std. Error t value  Pr(&gt;|t|)    
+## q   3.3190e+06  1.7135e+05 19.3694 &lt; 2.2e-16 ***
+## lf -3.7974e+06  6.1377e+05 -6.1869 2.375e-08 ***
+## pf  7.7307e-01  9.7319e-02  7.9437 9.698e-12 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>coeftest(ffe, vcovHC(ffe, type=&quot;HC4&quot;)) #resultado corrigido</code></pre>
+<pre><code>## 
+## t test of coefficients:
+## 
+##       Estimate  Std. Error t value  Pr(&gt;|t|)    
+## q   3.3190e+06  1.6658e+05 19.9243 &lt; 2.2e-16 ***
+## lf -3.7974e+06  1.7334e+06 -2.1907  0.031346 *  
+## pf  7.7307e-01  2.7657e-01  2.7952  0.006474 ** 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>#Estimacao com erros padroes robustos Modelo Efeitos Aleatorios
+coeftest(fre)</code></pre>
+<pre><code>## 
+## t test of coefficients:
+## 
+##                Estimate  Std. Error t value  Pr(&gt;|t|)    
+## (Intercept)  1.0743e+06  3.7747e+05  2.8461  0.005533 ** 
+## q            2.2886e+06  1.0949e+05 20.9015 &lt; 2.2e-16 ***
+## lf          -3.0850e+06  7.2568e+05 -4.2512 5.378e-05 ***
+## pf           1.1236e+00  1.0344e-01 10.8622 &lt; 2.2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>coeftest(fre, vcovHC(fre, type=&quot;HC4&quot;))</code></pre>
+<pre><code>## 
+## t test of coefficients:
+## 
+##                Estimate  Std. Error t value  Pr(&gt;|t|)    
+## (Intercept)  1.0743e+06  5.6652e+05  1.8963  0.061279 .  
+## q            2.2886e+06  1.4091e+05 16.2417 &lt; 2.2e-16 ***
+## lf          -3.0850e+06  1.3870e+06 -2.2242  0.028756 *  
+## pf           1.1236e+00  3.4685e-01  3.2394  0.001704 ** 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>#Solucao de problema de Autocorrelacao
+#Estimacao com erros padroes robustos Modelo Efeitos Fixos
+coeftest(ffe) #resultado sem correcao</code></pre>
+<pre><code>## 
+## t test of coefficients:
+## 
+##       Estimate  Std. Error t value  Pr(&gt;|t|)    
+## q   3.3190e+06  1.7135e+05 19.3694 &lt; 2.2e-16 ***
+## lf -3.7974e+06  6.1377e+05 -6.1869 2.375e-08 ***
+## pf  7.7307e-01  9.7319e-02  7.9437 9.698e-12 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>coeftest(ffe, vcovHC(ffe, cluster=&quot;group&quot;)) #resultado corrigido</code></pre>
+<pre><code>## 
+## t test of coefficients:
+## 
+##       Estimate  Std. Error t value Pr(&gt;|t|)    
+## q   3.3190e+06  1.5824e+05 20.9748  &lt; 2e-16 ***
+## lf -3.7974e+06  1.6161e+06 -2.3497  0.02122 *  
+## pf  7.7307e-01  2.6536e-01  2.9133  0.00462 ** 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>#Estimacao com erros padroes robustos Modelo Efeitos Aleatorios
+coeftest(fre) #resultado sem correcao</code></pre>
+<pre><code>## 
+## t test of coefficients:
+## 
+##                Estimate  Std. Error t value  Pr(&gt;|t|)    
+## (Intercept)  1.0743e+06  3.7747e+05  2.8461  0.005533 ** 
+## q            2.2886e+06  1.0949e+05 20.9015 &lt; 2.2e-16 ***
+## lf          -3.0850e+06  7.2568e+05 -4.2512 5.378e-05 ***
+## pf           1.1236e+00  1.0344e-01 10.8622 &lt; 2.2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>coeftest(fre, vcovHC(fre, cluster=&quot;group&quot;)) #resultado corrigido</code></pre>
+<pre><code>## 
+## t test of coefficients:
+## 
+##                Estimate  Std. Error t value  Pr(&gt;|t|)    
+## (Intercept)  1.0743e+06  5.1706e+05  2.0777  0.040719 *  
+## q            2.2886e+06  1.3006e+05 17.5962 &lt; 2.2e-16 ***
+## lf          -3.0850e+06  1.2744e+06 -2.4207  0.017594 *  
+## pf           1.1236e+00  3.3194e-01  3.3849  0.001075 ** 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
 </div>
 </div>
 

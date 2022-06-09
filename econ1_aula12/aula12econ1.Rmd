@@ -383,7 +383,7 @@ Existem dificuldades para se estimar (14). Se considerar a estratégia de simple
 
 ```{r aula12_9, warning=FALSE, message=FALSE}
 #Modelo de regressao simples para 1987
-reg5 <- lm(crmrte~d87+unem, data=crime2, subset=(year==87))
+reg5 <- lm(crmrte~unem, data=crime2, subset=(year==87))
 summary(reg5)
 ```
 <br>
@@ -428,6 +428,8 @@ O efeito não observado $a_i$ desaparece, bem como o intercepto passa a ser a \e
 
 O código abaixo estima (15):
 
+<br>
+
 ```{r aula12_10, warning=FALSE, message=FALSE}
 
 # Estimação da Equação de Primeiras Diferenças
@@ -438,23 +440,478 @@ reg6 <- lm(dcrmrte~dunem, data=crime2)
 summary(reg6)
 ```
 
+<br>
+
 Existe uma relação positiva e estatisticamente significativa entre desemprego e taxa de criminalidade. Isto é, a diferenciação com o objetivo de eliminar os *efeitos constantes no tempo* teve grande efeito nesse caso;
 
 A equação (15) explicitamente considera como as alterações na variável explicativa ao longo do tempo afetam a mudança em $y$ ao longo do mesmo período do tempo;
 
 Essa é a forma mais simples de estimar um conjunto de dados em painel para dois períodos de tempo, via mínimos quadrados ordinários. 
+
+```{r aula12_11, warning=FALSE, message=FALSE}
+
+# Organização dos dados em Painel
+library(plm)
+
+crime2.p <- pdata.frame(crime2, index=46)
+# Cálculo manual da primeira diferença
+crime2.p$dcrmrte <- diff(crime2.p$crmrte)
+crime2.p$dunem   <- diff(crime2.p$unem)
+# Estimando o modelo com a função lm sobre as primeiras diferenças
+coeftest(lm(dcrmrte~dunem, data=crime2.p))
+# Estimando o modelo com a função plm sobre os dados originais
+# Observe que a interpretação muda completamente.
+coeftest(plm(crmrte~unem, data=crime2.p, model="fd"))
+```
  
+<br>
+
+## A Organização dos Dados em Painel no R
+
+<br>
  
+Para os cálculos utilizados em dados em painel, se deve ter certeza que o conjunto de dados é sistematicamente organizado e que as rotinas de estimação *compreendem* essa estrutura de dados. Usualmente, um conjunto de dados em painel vem em uma forma longa onde cada **linha** dos dados corresponde a uma combinação de $i$ e $t$. É necessário definir, então, quais observações se pertencem ao introduzir um indexador para a unidade de corte transversal e também para o tempo $t$;
+
+O painel podem ser longo (long panel) ou curto (short panel). No painel longo o N de cortes transversais é menor do que o T da série temporal. Se N for maior que T, se tem um painel curto.
+
+No **R**, o pacote ``plm`` é uma coleção compreensiva de funções criadas para lidar com conjuntos de dados em painel. Semelhantemente à especificação de dados de séries temporais, oferece uma estrutura de dados nomeada como ``pdata.frame``. Essencialmente corresponde a um ``data.frame`` padrão, mas com atributos adicionadas que descrevem indivíduos e dimensões temporais. 
+
+Considere uma base de dados padrão nomeado como ``crime4``. Ela inclui um variável ``county`` indicando a unidade de corte transversal e uma variável ``year`` indicando o tempo. Assim, cria-se o data frame de painel com a função.
  
+<br>
+
+```{r aula12_12, warning=FALSE, message=FALSE}
+
+# Organização dos dados em Painel
+
+data(crime4, package='wooldridge')
+crime4<-crime4
+
+summary(crime4[,c(1:5)])
+
+crime4.p <- pdata.frame(crime4, index=c("county","year"))
+```
+
+<br>
+
+Caso se tenha um **painel balanceado**, (isto é, com o mesmo número de observações $T$ para cada **indivíduo** $i = 1,..,n$), e as observações forem primeiro ordenadas por $i$ e depois por $t$, pode-se escrever como abaixo (corresponde a um **painel balanceado** de 46 cidades, devidamente ordenado. O código abaixo importa e trata o conjunto de dados):
  
+<br>
  
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
+```{r aula12_13, warning=FALSE, message=FALSE}
+crime2.p <- pdata.frame(crime2, index=46)
+
+# Verificando a dimensão
+pdim(crime2.p)
+```
+<br>
+
+Um painel balanceado com 46 cidades dispostas em dois períodos, correspondendo assim a 92 observações. Nesse caso, são geradas novas variáveis **id** e **time** como indexadores. Uma vez que se tenha definido o conjunto de dados, pode-se ainda checar as dimensões com a função ``pdim(crime2.p)``;
+
+Ela irá reportar se o painel é balanceado, o número de $n$ unidades de corte transversal, o número de $T$ unidades de tempo e o total de observações (o que será $n*T$ em painéis balanceados).
+
+<br>
+
+## O Modelo de Efeitos Fixos
+
+<br>
+
+O estimador de primeira diferença é apenas uma das muita maneiras de eliminar o efeito fixo, $a_t$. Um outro método, que pode funcionar melhor, é chamado de **transformação ou modelo de efeitos fixos** 
+
+<br>
+
+$$ 
+y_{it} = \beta_1 x_{it} + a_i + u_{it}, \quad t = 1,2,...,T. 
+\tag{16} 
+$$ 
+
+<br>
+
+De modo que para cada $i$, se calcule a média dessa equação ao longo do tempo 
+
+<br>
+
+$$ 
+\bar{y}_i = \beta_1 \bar{x}_i + a_i + \bar{u}_i 
+\tag{17}
+$$ 
+
+<br>
+
+em que $\bar{y}_i = T^{-1} \sum_{t=1}^{T} y_{it}$, e assim por diante. 
+
+Como $a_i$ é fixo ao longo do tempo, ele aparece tanto em (16) quanto em (17). Assim, ao se subtrair uma da outra, para cada $t$, tem-se 
+<br>
+
+$$ 
+\ddot{y}_{it} = \beta_1 \ddot{x}_it +\ddot{u}_it , \quad t = 1,2,...,T, \tag{18} 
+$$ 
+<br>
+
+onde $\ddot{y}_{it} = y_{it} - \bar{y}$ são *dados centrados na média* de $y$ e $\ddot{x}_{it}$ e $\ddot{u}_{it}$ são obtidos da mesma forma.
+
+Como se pode notar, o efeito não observado $a_i$ desapareceu em (18), de modo que é possível estimá-la por um MQO agrupado. Um estimador MQO, por suposto, que se baseia em variáveis temporais reduzidas é chamado de **estimador de efeitos fixos** ou **estimador intragrupos**. 
+
+Pode-se generalizar (18) começando pela equação de efeitos não observados original 
+
+<br>
+
+$$ 
+y_{it} = \beta_1 x_{it1} + \beta_2 x_{it2} + ... + \beta_k x_{itk} + a_i + u_{it}, \quad t = 1,2,...,T, 
+\tag{19} 
+$$ 
+<br>
+
+de modo a obter 
+
+$$ 
+\ddot{y}_{it} = \beta_1 \ddot{x}_{it1} + \beta_2 \ddot{x}_{it2} + ... + \beta_k \ddot{x}_{itk} + \ddot{u}_{it}, \quad t = 1,2,...,T, 
+\tag{20} 
+$$ 
+<br>
+
+que pode ser estimado pelo MQO agrupado.
+
+O estimador de efeitos fixos é não viesado considerando que o erro $u_{it}$ seja não correlacionado com cada variável explicativa ao longo de todos os períodos de tempo;
+
+O estimador de efeitos fixos leva em consideração uma correlação entre $a_i$ e as variáveis explicativas em qualquer período de tempo. Assim, qualquer variável explicativa que seja constante no tempo para todo *i* é removida pela transformação de efeitos fixos: $\ddot{x}_{it}=0$, para todo *i* e *t*, se $x_{it}$ for constante ao longo de *t*.
+
+Os erros $u_{it}$ devem ser homocedásticos e serialmente não correlacionados.
+
+O conjunto de dados ``wagenpan.csv`` foi utilizado para um estudo sobre sindicalismo e os determinantes das taxas de salários para homens jovens;
+
+Algumas variáveis, como experiência, estado civil e filiação sindical mudam ao longo do tempo. Outras variáveis, como raça e educação não mudam;
+
+Assim, usando efeitos fixos, não é possível incluir essas variáveis na equação. O que pode ser feito é incluir interações da educação com ``dummies`` anuais, de modo a testar se o retorno da educação foi constante ao longo do tempo.
+
+<br>
+
+```{r aula12_14, warning=FALSE, message=FALSE}
+#Modelo de efeitos Fixos
+data(wagepan, package='wooldridge')
+wagenpan <- wagepan
+
+#Criar o data frame
+wagepan.p <- pdata.frame(wagepan, index=c("nr","year") )
+pdim(wagepan.p)
+
+# Estimar o modelo de efeitos fixos
+summary(plm(lwage~married+union+factor(year)*educ,
+            data=wagepan.p, model="within"))
+
+#Pode-se verificar que o retorno da educação é cerca de 
+#três pontos percentuais maior em 1987 do que no ano-base, 
+#que é 1980.
+```
+
+<br>
+
+Observe que foi colocado no argumento **model** a opção **within**, que corresponde à subtração da média de uma observação $x_{it}$.
+
+<br>
+
+## Efeitos Fixos ou Primeira Diferença?
+
+<br>
+
+Se T=2,  as estimativas por ambos métodos são as mesmas, assim como os testes estatísticos. Então, é indiferente escolher entre EF ou PD. 
+
+Se $T \geq 3$, os estimadores EF e PD não são os mesmos. Ambos são não viesados e consistentes. Para N grande e T pequeno, a escolha vai depender da eficiência dos estimadores, determinado pela correlação serial nos resíduos, $u_{it}$.
+
+Se os resíduos forem não correlacionados, os estimadores de EF são mais eficientes em comparação com PD. Se forem, por exemplo, um passeio aleatório, a PD será melhor. Se houver correlação positiva mas não for um passeio aleatório, é mais difícil comparar a eficiência de EF e PD. Se a correlação for negativa, melhor EF.
+
+<br>
+
+## O Modelo de Efeitos Aleatórios
+
+<br>
+
+Considere o modelo já visto  
+
+<br>
+
+$$
+y_{it} = \beta_0 + \beta_1 x_{it1} + ... + \beta_k x_{itk} +  a_i + u_{it}, \tag{21}  
+$$
+<br>
+
+em que foi incluído um intercepto de modo que se possa presumir que o efeito não observado, $a_i$, tem média zero. 
+
+Ao utilizar efeitos fixos ou primeira diferença, o objetivo era eliminar $a_i$, dado que o mesmo poderia ser correlacionado com as variáveis explicativas;
+
+Entretanto, pode-se supor que $a_i$ é não correlacionado com cada variável explicativa em todos os períodos de tempo. Nesse caso específico, os estimadores são ineficientes se $a_i$ for eliminado.
+
+Nesse contexto, a equação (21) poderá se tornar um **modelo de efeitos aleatórios** quando se supor que o efeito não observado $a_i$ é não correlacionado com cada variável explicativa em todos os períodos de tempo, isto é,
+
+<br>
+
+$$ 
+Cov(x_{itj}, a_i) = 0, \quad t = 1,2,...,T; \quad j = 1,2,...,k. 
+\tag{22} 
+$$
+<br>
+
+Sob (22), como estimar $\beta_j$? Se for considerado que $a_i$ não é correlacionado com o vetor de variáveis explicativas, o vetor $\beta_j$ poderá ser consistentemente estimado com o uso de um único *corte transversal*. Isso, entretanto, implica em desconsiderar informações dos demais períodos de tempo.
+
+É possível ainda utilizar os dados em um procedimento de MQO agrupado. Isso também produzirá estimadores consistentes, entretanto irá ignorar um ponto importante. Isto porque, se for definido o termo de erro composto como $v_{it} = a_i + u_{it}$, (21) poderá ser escrita como
+
+<br>
+
+$$ 
+y_{it} = \beta_0 + \beta_1 x_{it1} + ... + \beta_k x_{itk} + v_{it}. \tag{23}
+$$
+<br>
+
+Como $a_i$ é o erro composto em cada período de tempo, os $v_{it}$ serão serialmente correlacionados ao longo do tempo. Sob as hipóteses de efeitos aleatórios,
+
+<br>
+
+$$ 
+Corr(v_{it}, v_{is}) = \frac{\sigma_a^2}{\sigma_a^2 + \sigma_u^2}, \quad t \neq s, 
+\tag{24}
+$$
+<br>
+
+onde $\sigma_a^2$ = Var(a_i)$ e $\sigma_u^2 = Var(u_{it})$
+
+Essa correlação serial positiva no termo de erro pode ser substancial. Dado que os erros-padrão do estimador de MQO agrupado normalmente ignoram essa correlação, eles serão incorretos, assim como as estatísticas de teste. De modo a resolver esse problema, pode-se utilizar mínimos quadrados generalizados (MQG). Considere
+
+<br>
+
+$$ 
+\theta = 1 - \left [ \sigma_u^2/(\sigma_u^2 + T \sigma_a^2) \right ]^{\frac{1}{2}} 
+\tag{25}
+$$
+<br>
+
+que estará entre zero e um. A seguir, a equação transformada resultará em
+
+<br>
+
+$$ 
+y_{it} - \theta \bar{y}_i = \beta_0 (1 - \theta) + \beta_1 (x_{it1} - \theta \bar{x}_{i1}) + ... + \beta_k (x_{itk} - \theta \bar{x}_{ik}) + (v_{it} - \theta \bar{v}_i) 
+\tag{26}
+$$
+<br>
+
+de modo que a transformação de efeitos aleatórios irá subtrair uma fração daquela média temporal, sendo que esta fração irá depender de $\sigma_{u}^2$, \sigma_a^2$ e do número de períodos de tempo $T$.
+
+O estimador MQG é simplesmente o estimador MQO agrupado de (26).
+A transformação contida em (26) considera variáveis explicativas que sejam constantes ao longo do tempo. Isto porque o estimador de efeitos aleatórios presume que o efeito não observado é não correlacionado com todas as variáveis explicativas, sejam elas fixas ao longo do tempo ou não;
+
+Assim, por exemplo, em uma equação de salário, pode-se incluir uma variável como educação, mesmo que ela não se altere ao longo do tempo. 
+
+Na prática, o parâmetro $\theta$ nunca é conhecido, devendo ser estimado.
+
+Em geral, para se estimar $\hat{\theta}$ se faz
+
+<br>
+
+$$
+\hat{\theta}=1-\left \{\frac{1}{[1+T(\frac{\hat{\sigma}^2_a}{\hat{\sigma}^2_u})]}\right\}^\frac{1}{2}
+$$
+<br>
+
+em que $\hat{\sigma}^2_a$ e $\hat{\sigma}^2_u$ são estimadores consistentes de $\sigma^2_a$ e $\sigma^2_u$;
+
+Estes estimadores podem estar baseados nos resíduos do MQO agrupado ou EF.
+
+Uma possibilidade é que
+<br>
+$$
+\hat{\sigma}^2_a=\left [\frac{NT(T-1)}{2-(k+1)}\right]^{-1} \sum_{i=1}^{N}\sum_{t=1}^{T-1}\sum_{s=t+1}^{T} \hat{v}_{it}\hat{v}_{is}
+\tag{28}
+$$
+<br>
+
+em que os $\hat{v}_{it}$ são os resíduos de estimar {23} pelo MQO agrupado;
+
+Em seguida pode-se estimar $\sigma^2_u$ usando $\hat{\sigma}^2_u=\hat{\sigma}^2_v-\hat{\sigma}^2_a$ em que $\hat{\sigma}^2_v$ é o quadrado do erro padrão da regressão pelo MQO agrupado;
+
+O estimador MQG factível que usa $\hat{\theta}$ em lugar de $\theta$ é chamado de **estimador de efeitos aleatórios**. Sob pressupostos de ausência de multicolinearidade, $E(a_i|X_i)=\beta_0$ e $Var(a_i|X_i)=\sigma^2_a$ o estimador é não viesado, consistente, distribuído normalmente e assimptoticamente conforme N fica maior com T fixo.
+
+A equação (26) permite relacionar o estimado de EA com MQO agrupado e EF.  
+Se $\hat{\theta}$ estiver próximo de zero, as estimativas de EA estarão próximas das estimativas do MQO agrupado, sendo o caso quando $a_i$ tem pouca importância. Se $\hat{\sigma}^2_a$ for grande em relação a $\hat{\sigma}^2_u$, $\hat{\theta}$ vai estar mais próximo de 1. Conforme T fica maior, $\hat{\theta}$ tende a um, fazendo com que EA e EF sejam semelhantes.
+
+O modelo abaixo estima uma equação para os salários do homens, com as variáveis explicativas sendo educação, raça, experiência, estado civil e se é sindicalizado. A regressão também contém um conjunto de dummies anuais;
+O modelo utilizado é de dados em painel com efeitos aleatórios, dado que foi colocado no argumento ``model`` a opção *random*.
+
+<br>
+
+```{r aula12_15, warning=FALSE, message=FALSE}
+#Estimar o modelo de efeitos Aleatórios
+# Estimar o modelo de efeitos aleatórios
+wagepan.p$yr <- factor(wagepan.p$year)
+pvar(wagepan.p)
+summary(plm(lwage~educ+black+hisp+exper+I(exper^2)+married+union+yr, 
+             data=wagepan.p, model="random"))
+```
+<br>
+
+O salário dos homens em 1987 é cerca de 14,45\% mais elevado do que no ano base (1980). Participar de sindicato ou ser casado aumentam o salarios em cerca de 11,2\% e 6,61\%, respecticamente. A estimativa de $\theta$ é 0,6429.
+
+## O Teste de Hausman
+
+O teste de Hausman (1978) testa o vetor de coeficientes **b** do modelo de efeitos fixos contra o vetor $\hat{\beta}$ do modelo de efeitos aleatórios, verificando a ortogonalidade dos efeitos comuns com os regressores;
+
+O teste é baseado na ideia de que, na ausência de correlação sob $H_0$, tanto o modelo de efeitos fixos quanto o de efeitos aleatórios são consistentes, mas o modelo de efeitos fixos é ineficiente;
+
+Então, sob a hipótese nula de que o modelo de efeitos aleatórios é o mais adequado, formula-se a seguinte estatística de teste 
+
+<br>
+
+$$
+H = (b-\hat{\beta})'(var[b]-var[\hat{\beta}])^{-1}(b-\hat{\beta}) \sim \chi^2(k-1)
+\tag{29} 
+$$
+<br>
+
+No **R**, o teste é o ``phtest``.
+
+<br>
+
+```{r aula12_16, warning=FALSE, message=FALSE}
+#Testes de Hausman
+#HO: Efeitos aleatorios e melhor
+#basicamente testa se os erros sao correlacionados
+#com os regressores e a H0 é que nao sao.
+
+ffe <- plm(lwage~married+union+factor(year)*educ,
+            data=wagepan.p, model="within")
+fre <- plm(lwage~educ+black+hisp+exper+I(exper^2)+married+union+yr, 
+             data=wagepan.p, model="random")
+
+phtest(ffe, fre)
+```
+
+<br>
+
+## Demonstração no R com o exemplo do livro do Gujarati
+
+<br>
+
+```{r aula12_17, warning=FALSE, message=FALSE}
+
+#Direcionado o R para o Diretorio a ser trabalhado
+setwd('C:/Users/Joao Ricardo Lima/Dropbox/tempecon/Facape/econometria1')
+
+#Extracao dos dados Gujarati
+dados <- read.csv2('painel_gujarati.csv', header=T, sep=";", dec=".")
+names(dados)[1] <- c("crossid")
+
+#Regressao com dados empilhados
+regressao1 <- lm(ct ~ q+lf+pf, data=dados)
+summary(regressao1)
+
+#Regressao com o uso de variaveis Dummy e Efeitos Fixos
+fixed.dum <- lm(ct ~ q+lf+pf+factor(crossid)-1, data=dados)
+summary(fixed.dum)
+
+#Configuracao como dados em painel
+pdados <- pdata.frame(dados, c("crossid","dateid"))
+pdados <- pdata.frame(dados, index=6) #opção para painel balanceado (n=90/t=15)
+#Checar as dimensoes do painel
+pdim(pdados)
+#Checar por variação no corte transversal e no tempo
+pvar(pdados)
+
+#Pool Test
+#teste F de estabilidade dos coeficientes do modelo em painel. Testa a hipótese de que os coefs
+# excluindo os interceptos sao iguais.
+pooltest(ct ~ q+lf+pf, data=pdados, model='within')
+#Testa a hipótese de que os coefs incluindo os interceptos sao iguais.
+pooltest(ct ~ q+lf+pf, data=pdados, model='pooling')
+
+#Testa se não há efeitos (individual u tempo) não 
+# observados nos resíduos (ausencia de autocorrelacao residuos).
+# H0=correlação zero entre os residuos do mesmo grupo. 
+pwtest(ct ~ q+lf+pf, data=pdados, model='pooling')
+
+#Teste para verificar conjuntamente a existencia de efeito aleatorio
+# e correlação serial. A H0 é ausencia dos dois.
+pbsytest(ct ~ q+lf+pf, data=pdados, model='pooling', test = 'j')
+
+#Teste para verificar a existencia de 
+# correlação serial. A H0 é ausencia de correlação.
+pbsytest(ct ~ q+lf+pf, data=pdados, model='pooling')
+
+#Teste para verificar a existencia de efeito aleatorio
+#. A H0 é ausencia de efeito aleatório.
+pbsytest(ct ~ q+lf+pf, data=pdados, model='pooling', test = 're')
+
+#Teste para verificar a existencia de correlação serial
+# em erros sob efeitos aleatórios (AR(1) ou MA(1). 
+# A H0 é ausencia de correlação.
+pbltest(ct ~ q+lf+pf, data=pdados, model='pooling', alternative = 'oneside')
+
+#Uso de Funções diversas com Panel Data
+pdados$q.l <- lag(pdados$q) #1 Lag
+pdados$q.d <- diff(pdados$q) #1 Diff
+pdados$q.B <- Between(pdados$q) #Média por Cross-Section
+pdados$q.W <- Within(pdados$q) #x-x.bar
+
+#Estimacao de modelo com efeitos Fixos
+ffe <- plm(ct ~ q+lf+pf, model="within", data = pdados)
+summary(ffe)
+#O coeficiente estimado indica quanto ct muda ao longo do tempo
+# na media por empresa aerea, quando a variavel aumenta uma unidade 
+fixef(ffe) #mostra os seis diferentes interceptos
+summary(fixef(ffe)) #mostra os seis diferentes interceptos com signif.
+
+#Teste do RFE contra MqO
+#Hipotese Nula: Modelo de MqO e melhor
+pFtest(ffe, regressao1)
+
+#Teste de Correlação serial quando T for pequeno em 
+#Modelo de Efeito Fixo.H0: ausencia de correlacao serial
+pwartest(ffe)
+
+pwfdtest(ct ~ q+lf+pf, data = pdados)
+
+#Estimacao de modelo com Efeitos Aleatorios
+fre <- plm(ct ~ q+lf+pf, model="random", data = pdados)
+summary(fre)
+#Os coeficientes estimados indicam o efeito medio de X sobre Y quando
+# X muda ao longo do tempo e entre as empresas aereas em uma unidade.
+
+#Testes de Hausman
+#HO: Efeitos aleatorios e melhor
+#basicamente testa se os erros sao correlacionados
+#com os regressores e a H0 é que nao sao.
+
+phtest(ffe, fre)
+
+#Teste de estacionariedade das series
+#Hipotese nula: os dados possuem raiz unitaria
+library(tseries)
+adf.test(pdados$ct, k=2)
+adf.test(pdados$lf, k=2)
+adf.test(pdados$pf, k=2)
+adf.test(pdados$q, k=2)
+
+#Teste para Correlacao Serial
+#Hipotese Nula: ausencia de autocorrelacao serial
+pbgtest(ffe, order=2)
+
+#Teste de Breusch-Pagan de homocedasticidade
+#Hipotese nula eh homocedasticidade
+bptest(ct ~ q+lf+pf+factor(crossid), data=dados, studentize=F)
+
+#Solucao de problema de Heterocedasticidade
+#Estimacao com erros padroes robustos Modelo Efeitos Fixos
+coeftest(ffe) #resultado sem correcao
+coeftest(ffe, vcovHC(ffe, type="HC4")) #resultado corrigido
+#Estimacao com erros padroes robustos Modelo Efeitos Aleatorios
+coeftest(fre)
+coeftest(fre, vcovHC(fre, type="HC4"))
+
+#Solucao de problema de Autocorrelacao
+#Estimacao com erros padroes robustos Modelo Efeitos Fixos
+coeftest(ffe) #resultado sem correcao
+coeftest(ffe, vcovHC(ffe, cluster="group")) #resultado corrigido
+#Estimacao com erros padroes robustos Modelo Efeitos Aleatorios
+coeftest(fre) #resultado sem correcao
+coeftest(fre, vcovHC(fre, cluster="group")) #resultado corrigido
+
+
+```
